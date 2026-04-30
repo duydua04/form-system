@@ -1,7 +1,7 @@
 import jwt
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
-from ..configs.settings import settings
+from backend.app.configs.settings import settings
 
 
 def create_access_token(subject: str | int, expires_delta: timedelta | None = None) -> str:
