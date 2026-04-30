@@ -1,20 +1,27 @@
-from sqlalchemy import ForeignKey, DateTime
+from sqlalchemy import ForeignKey, Text, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql import func
-from datetime import datetime
 from ..configs.db_config import Base
 
 
-class Submission(Base):
-    __tablename__ = "form_submissions"
+class SubmissionAnswer(Base):
+    __tablename__ = "submission_answers"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    form_id: Mapped[int] = mapped_column(ForeignKey("forms.id", ondelete="CASCADE"), nullable=False, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    submission_id: Mapped[int] = mapped_column(
+        ForeignKey("form_submissions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    field_id: Mapped[int] = mapped_column(
+        ForeignKey("fields.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    value: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # Relationships
+    # Biến này phải tên là 'submission' để khớp với back_populates="submission" ở class Submission
+    submission: Mapped["Submission"] = relationship("Submission", back_populates="answers")
 
-    # Relationship
-    form: Mapped["Form"] = relationship(back_populates="submissions")
-    user: Mapped["User"] = relationship(back_populates="submissions")
-    answers: Mapped[list["SubmissionAnswer"]] = relationship(back_populates="submission", cascade="all, delete-orphan")
+    # Nối với class Field (Giả sử bạn đặt tên class là Field)
+    field: Mapped["Field"] = relationship("Field", back_populates="answers")
