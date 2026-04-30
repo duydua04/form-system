@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB
 from typing import Any
 from ..configs.db_config import Base
-from .enum import FieldTypeEnum
+from .enums import FieldTypeEnum
 
 
 class Field(Base):
@@ -20,10 +20,11 @@ class Field(Base):
 
     display_order: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)
     is_required: Mapped[bool] = mapped_column(Boolean, server_default="false", nullable=False)
-
     options: Mapped[Any | None] = mapped_column(JSONB)
 
+    # Relationship
     form: Mapped["Form"] = relationship(back_populates="fields")
+    answers: Mapped[list["SubmissionAnswer"]] = relationship(back_populates="field", cascade="all, delete-orphan")
 
     __table_args__ = (
         CheckConstraint(

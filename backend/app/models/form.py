@@ -3,14 +3,15 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from datetime import datetime
 from ..configs.db_config import Base
-from .enum import FormStatusEnum
+from .enums import FormStatusEnum
 
 
 class Form(Base):
     __tablename__ = "forms"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    admin_id: Mapped[int] = mapped_column(ForeignKey("admins.id", ondelete="CASCADE"), nullable=False, index=True)
+
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     display_order: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)
@@ -28,7 +29,7 @@ class Form(Base):
         onupdate=func.now()
     )
 
-    # Mối quan hệ
-    owner: Mapped["User"] = relationship(back_populates="forms")
+    # Relationship
+    admin: Mapped["Admin"] = relationship(back_populates="forms")
     fields: Mapped[list["Field"]] = relationship(back_populates="form", cascade="all, delete-orphan")
     submissions: Mapped[list["Submission"]] = relationship(back_populates="form", cascade="all, delete-orphan")
