@@ -2,13 +2,16 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from .utils.error_helper.error_handlers import setup_exception_handlers
 
 from .configs.settings import settings
 
 #IMPORT COMMON ROUTER
 from .routes.common.auth_route import auth_router
-from .utils.error_helper.error_handlers import setup_exception_handlers
 
+
+#IMPORT ADMIN ROUTER
+from .routes.admin.admin_form_route import admin_form_router
 app = FastAPI(
     title="DForm Website",
 )
@@ -23,3 +26,6 @@ setup_exception_handlers(app)
 
 #CALL COMMON API
 app.include_router(auth_router)
+
+#CALL ADMIN API
+app.include_router(admin_form_router)
