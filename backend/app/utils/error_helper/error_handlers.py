@@ -4,6 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from .exceptions import AppException
 from ...schemas.common.error_schema import ErrorResponse, ErrorDetailItem
+from sqlalchemy.exc import SQLAlchemyError
 
 
 def setup_exception_handlers(app: FastAPI) -> None:
@@ -80,3 +81,15 @@ def setup_exception_handlers(app: FastAPI) -> None:
             content=error_response.model_dump(exclude_none=True)
         )
 
+    # 5. Handle Database Exceptions
+    @app.exception_handler(SQLAlchemyError)
+    async def database_exception_handler(request: Request, exc: SQLAlchemyError) -> JSONResponse:
+        error_response = ErrorResponse(
+            success=False,
+            error_code="DATABASE_ERROR",
+            message="A database error occurred."
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=error_response.model_dump(exclude_none=True)
+        )
