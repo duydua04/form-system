@@ -1,11 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update, case
 from fastapi import status, Depends
 
 from ...configs.db_config import get_db
 from ...models.field import Field
 from ...models.form import Form
-from ...schemas.admin.admin_field_schema import FieldCreateRequest, FieldUpdateRequest
+from ...schemas.admin.admin_field_schema import FieldCreateRequest, FieldUpdateRequest, FieldReorderRequest
 from ...utils.error_helper.exceptions import AppException
 
 
@@ -68,6 +68,27 @@ class FieldService:
         await self.db.commit()
         await self.db.refresh(field)
         return field
+
+    async def reorder_fields(self, form_id: int, admin_id: int, payload: FieldReorderRequest) -> None:
+        await self._verify_form_ownership(form_id, admin_id)
+
+        if not payload.ordered_field_ids:
+            return
+
+        order_mapping = {
+            field_id: index
+            for index, field_id in enumerate(payload.ordered_field_ids)
+        }
+
+        stmt = update(Field).where(
+            Field.form_id == form_id,
+            Field.id.in_(payload.ordered_field_ids)
+        ).values(
+            display_order=case(order_mapping, value=Field.id)
+        )
+
+        await self.db.execute(stmt)
+        await self.db.commit()
 
     async def delete_field(self, form_id: int, field_id: int, admin_id: int) -> None:
         field = await self._get_field_with_auth(form_id, field_id, admin_id)

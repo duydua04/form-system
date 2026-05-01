@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from typing import Optional, Any
+from typing import Optional
 from ...models.enums import FieldTypeEnum
 
 
@@ -37,3 +37,10 @@ class FieldResponse(BaseModel):
     options: Optional[list[str]] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class FieldReorderRequest(BaseModel):
+    ordered_field_ids: list[int] = Field(
+        ...,
+        description="List IDs of fields in the desired order from top to bottom",
+        min_length=1
+    )

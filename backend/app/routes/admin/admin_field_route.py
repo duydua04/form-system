@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from ...controllers.admin.admin_field_controller import FieldController, get_field_controller
-from ...schemas.admin.admin_field_schema import FieldCreateRequest, FieldUpdateRequest, FieldResponse
+from ...schemas.admin.admin_field_schema import FieldCreateRequest, FieldUpdateRequest, FieldResponse, \
+    FieldReorderRequest
 from ...middleware.auth import require_admin
 
 field_router = APIRouter(
@@ -17,6 +18,16 @@ async def create_field(
 ):
     """Add field to form"""
     return await controller.create(form_id, admin_id, payload)
+
+@field_router.put("/{form_id}/fields/reorder", status_code=status.HTTP_200_OK)
+async def reorder_fields(
+    form_id: int,
+    payload: FieldReorderRequest,
+    admin_id: int = Depends(require_admin),
+    controller: FieldController = Depends(get_field_controller)
+):
+    """Update the display order of fields at the same time (Drag & Drop)"""
+    return await controller.reorder(form_id, admin_id, payload)
 
 @field_router.put("/{form_id}/fields/{field_id}", response_model=FieldResponse, status_code=status.HTTP_200_OK)
 async def update_field(

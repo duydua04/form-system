@@ -1,6 +1,7 @@
 from fastapi import Depends
 from ...services.admin.admin_field_service import FieldService, get_field_service
-from ...schemas.admin.admin_field_schema import FieldCreateRequest, FieldUpdateRequest
+from ...schemas.admin.admin_field_schema import FieldCreateRequest, FieldUpdateRequest, FieldReorderRequest
+
 
 class FieldController:
     def __init__(self, field_service: FieldService):
@@ -14,8 +15,12 @@ class FieldController:
 
     async def delete(self, form_id: int, field_id: int, admin_id: int):
         await self.field_service.delete_field(form_id, field_id, admin_id)
-        return {"message": "Xóa field thành công."}
+        return {"message": "Delete field completely."}
 
-# Dependency Injection
+    async def reorder(self, form_id: int, admin_id: int, payload: FieldReorderRequest):
+        await self.field_service.reorder_fields(form_id, admin_id, payload)
+        return {"message": "Update the order of fields successfully."}
+
+
 def get_field_controller(service: FieldService = Depends(get_field_service)) -> FieldController:
     return FieldController(service)
