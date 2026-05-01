@@ -1,6 +1,7 @@
 from fastapi import Depends
 from ...services.admin.admin_form_service import FormService, get_form_service
-from ...schemas.admin.admin_form_schema import FormCreateRequest, FormUpdateRequest, TimeFilterEnum
+from ...schemas.admin.admin_form_schema import FormCreateRequest, FormUpdateRequest
+from ...schemas.common.enum_schema import TimeFilterEnum
 
 class FormController:
     def __init__(self, form_service: FormService):

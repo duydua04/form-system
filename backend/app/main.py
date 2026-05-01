@@ -13,6 +13,10 @@ from .routes.common.auth_route import auth_router
 #IMPORT ADMIN ROUTER
 from .routes.admin.admin_form_route import admin_form_router
 from .routes.admin.admin_field_route import field_router
+
+#IMPORT USER ROUTER
+from .routes.user.user_submission_route import user_form_router
+
 app = FastAPI(
     title="DForm Website",
 )
@@ -31,3 +35,6 @@ app.include_router(auth_router)
 #CALL ADMIN API
 app.include_router(admin_form_router)
 app.include_router(field_router)
+
+#CALL USER API
+app.include_router(user_form_router)

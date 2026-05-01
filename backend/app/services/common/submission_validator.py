@@ -50,7 +50,7 @@ class SubmissionValidator:
         return value
 
 
-@SubmissionValidator.register(FieldTypeEnum.TEXT)
+@SubmissionValidator.register(FieldTypeEnum.text)
 def validate_text(field, value: str):
     """Validates that the text does not exceed 200 characters."""
     if len(value) > 200:
@@ -60,7 +60,7 @@ def validate_text(field, value: str):
             message=f"Field '{field.label}' must not exceed 200 characters."
         )
 
-@SubmissionValidator.register(FieldTypeEnum.NUMBER)
+@SubmissionValidator.register(FieldTypeEnum.number)
 def validate_number(field, value: str):
     """Validates that the number is a valid float between 0 and 100."""
     try:
@@ -78,7 +78,7 @@ def validate_number(field, value: str):
             message=f"Field '{field.label}' must be a valid number."
         )
 
-@SubmissionValidator.register(FieldTypeEnum.DATE)
+@SubmissionValidator.register(FieldTypeEnum.date)
 def validate_date(field, value: str):
     """Validates that the date is not in the past. Expected format: YYYY-MM-DD."""
     try:
@@ -99,7 +99,7 @@ def validate_date(field, value: str):
             message=f"Field '{field.label}' has an invalid date format. Expected: YYYY-MM-DD."
         )
 
-@SubmissionValidator.register(FieldTypeEnum.COLOR)
+@SubmissionValidator.register(FieldTypeEnum.color)
 def validate_color(field, value: str):
     """Validates that the value is a valid HEX color code in the format #RRGGBB."""
     hex_pattern = re.compile(r"^#[0-9A-Fa-f]{6}$")
@@ -110,7 +110,7 @@ def validate_color(field, value: str):
             message=f"Field '{field.label}' must be a valid HEX color code "
         )
 
-@SubmissionValidator.register(FieldTypeEnum.SELECT)
+@SubmissionValidator.register(FieldTypeEnum.select)
 def validate_select(field, value: str):
     """Validates that the value exists"""
     if not field.options or value not in field.options:
@@ -121,7 +121,7 @@ def validate_select(field, value: str):
         )
 
 
-@SubmissionValidator.register(FieldTypeEnum.FILE)
+@SubmissionValidator.register(FieldTypeEnum.file)
 def validate_file_submission(field, value: str):
     """
     Validates that the uploaded based on the allowed extensions defined

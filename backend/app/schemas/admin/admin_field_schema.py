@@ -22,7 +22,6 @@ class FieldCreateRequest(BaseModel):
 class FieldUpdateRequest(BaseModel):
     label: Optional[str] = Field(None, max_length=255)
     field_type: Optional[FieldTypeEnum] = None
-    display_order: Optional[int] = None
     is_required: Optional[bool] = None
     options: Optional[list[str]] = None
 

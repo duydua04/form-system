@@ -4,10 +4,10 @@ from ...schemas.admin.admin_form_schema import (
     FormResponse,
     FormDetailResponse,
     FormCreateRequest,
-    FormUpdateRequest,
-    TimeFilterEnum
+    FormUpdateRequest
 )
 from ...schemas.common.pagination_schema import PaginatedResponse
+from ...schemas.common.enum_schema import TimeFilterEnum
 from ...middleware.auth import require_admin
 
 admin_form_router = APIRouter(
@@ -38,7 +38,7 @@ async def create_form(
     """Tạo form mới"""
     return await controller.create(admin_id, payload)
 
-@admin_form_router.get("/{form_id}", response_model=FormDetailResponse, status_code=status.HTTP_200_OK)
+@admin_form_router.get("/{form_id:int}", response_model=FormDetailResponse, status_code=status.HTTP_200_OK)
 async def get_form_detail(
     form_id: int,
     admin_id: int = Depends(require_admin),
@@ -47,7 +47,7 @@ async def get_form_detail(
     """Lấy chi tiết 1 form (kèm danh sách field)"""
     return await controller.get_detail(form_id, admin_id)
 
-@admin_form_router.put("/{form_id}", response_model=FormResponse, status_code=status.HTTP_200_OK)
+@admin_form_router.put("/{form_id:int}", response_model=FormResponse, status_code=status.HTTP_200_OK)
 async def update_form(
     form_id: int,
     payload: FormUpdateRequest,
@@ -57,7 +57,7 @@ async def update_form(
     """Cập nhật thông tin form"""
     return await controller.update(form_id, admin_id, payload)
 
-@admin_form_router.delete("/{form_id}", status_code=status.HTTP_200_OK)
+@admin_form_router.delete("/{form_id:int}", status_code=status.HTTP_200_OK)
 async def delete_form(
     form_id: int,
     admin_id: int = Depends(require_admin),

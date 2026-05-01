@@ -9,7 +9,7 @@ field_router = APIRouter(
     tags=["Admin - Field Management"]
 )
 
-@field_router.post("/{form_id}/fields", response_model=FieldResponse, status_code=status.HTTP_201_CREATED)
+@field_router.post("/{form_id:int}/fields", response_model=FieldResponse, status_code=status.HTTP_201_CREATED)
 async def create_field(
     form_id: int,
     payload: FieldCreateRequest,
@@ -19,7 +19,7 @@ async def create_field(
     """Add field to form"""
     return await controller.create(form_id, admin_id, payload)
 
-@field_router.put("/{form_id}/fields/reorder", status_code=status.HTTP_200_OK)
+@field_router.put("/{form_id:int}/fields/reorder", status_code=status.HTTP_200_OK)
 async def reorder_fields(
     form_id: int,
     payload: FieldReorderRequest,
@@ -29,7 +29,7 @@ async def reorder_fields(
     """Update the display order of fields at the same time (Drag & Drop)"""
     return await controller.reorder(form_id, admin_id, payload)
 
-@field_router.put("/{form_id}/fields/{field_id}", response_model=FieldResponse, status_code=status.HTTP_200_OK)
+@field_router.put("/{form_id:int}/fields/{field_id}", response_model=FieldResponse, status_code=status.HTTP_200_OK)
 async def update_field(
     form_id: int,
     field_id: int,
@@ -40,7 +40,7 @@ async def update_field(
     """Update field"""
     return await controller.update(form_id, field_id, admin_id, payload)
 
-@field_router.delete("/{form_id}/fields/{field_id}", status_code=status.HTTP_200_OK)
+@field_router.delete("/{form_id:int}/fields/{field_id}", status_code=status.HTTP_200_OK)
 async def delete_field(
     form_id: int,
     field_id: int,

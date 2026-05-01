@@ -1,12 +1,8 @@
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List, Any
 from datetime import datetime
-from enum import Enum
-from ...models.enums import FormStatusEnum, FieldTypeEnum
 
-class TimeFilterEnum(str, Enum):
-    TODAY = "today"
-    THIS_WEEK = "this_week"
+from ...models.enums import FormStatusEnum, FieldTypeEnum
 
 class FormCreateRequest(BaseModel):
     title: str = Field(..., max_length=255)
