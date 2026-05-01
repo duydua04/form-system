@@ -12,7 +12,7 @@ class FormCreateRequest(BaseModel):
     title: str = Field(..., max_length=255)
     description: Optional[str] = None
     display_order: int = 0
-    status: FormStatusEnum = FormStatusEnum.DRAFT
+    status: FormStatusEnum = FormStatusEnum.draft
 
 class FormUpdateRequest(BaseModel):
     title: Optional[str] = Field(None, max_length=255)

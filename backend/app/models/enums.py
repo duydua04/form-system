@@ -1,13 +1,13 @@
 import enum
 
 class FormStatusEnum(enum.StrEnum):
-    ACTIVE = "active"
-    DRAFT = "draft"
+    active = "active"
+    draft = "draft"
 
 class FieldTypeEnum(enum.StrEnum):
-    TEXT = "text"
-    NUMBER = "number"
-    DATE = "date"
-    COLOR = "color"
-    SELECT = "select"
-    FILE = "file"
+    text = "text"
+    number = "number"
+    date = "date"
+    color = "color"
+    select = "select"
+    file = "file"

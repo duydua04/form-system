@@ -18,7 +18,7 @@ class Form(Base):
 
     status: Mapped[FormStatusEnum] = mapped_column(
         SQLEnum(FormStatusEnum, native_enum=False, length=20),
-        default=FormStatusEnum.DRAFT,
+        default=FormStatusEnum.draft,
         nullable=False
     )
 

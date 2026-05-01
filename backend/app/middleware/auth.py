@@ -1,13 +1,15 @@
 from fastapi import Request, Depends, status
+from fastapi.security import APIKeyCookie
+
 from ..utils.security.token import decode_token
 from ..utils.error_helper.exceptions import AppException
 
+cookie_scheme = APIKeyCookie(name="access_token", auto_error=False)
 
-def get_token_payload(request: Request) -> dict:
+def get_token_payload(token: str = Depends(cookie_scheme)) -> dict:
     """
     Base Dependency
     """
-    token = request.cookies.get("access_token")
     if not token:
         raise AppException(
             status_code=status.HTTP_401_UNAUTHORIZED,

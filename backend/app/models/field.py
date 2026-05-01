@@ -20,7 +20,7 @@ class Field(Base):
 
     display_order: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)
     is_required: Mapped[bool] = mapped_column(Boolean, server_default="false", nullable=False)
-    options: Mapped[Any | None] = mapped_column(JSONB)
+    options: Mapped[list[str] | None] = mapped_column(JSONB(none_as_null=True))
 
     # Relationship
     form: Mapped["Form"] = relationship(back_populates="fields")
