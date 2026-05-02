@@ -1,4 +1,4 @@
-from fastapi import Response, Depends
+from fastapi import Response, Depends, Request, status
 from ...services.common.auth_service import AuthService, get_auth_service
 from ...schemas.common.auth_schema import (
     RegisterRequest, LoginRequest,
@@ -6,6 +6,8 @@ from ...schemas.common.auth_schema import (
     UserResponse,AdminResponse
 )
 from ...utils.security.token import create_access_token, create_refresh_token
+from ...utils.error_helper.exceptions import AppException
+from ...utils.security.token import decode_token
 
 
 class AuthController:
@@ -56,6 +58,46 @@ class AuthController:
         response.delete_cookie(key="access_token", httponly=True, samesite="lax")
         response.delete_cookie(key="refresh_token", httponly=True, samesite="lax")
         return LogoutResponse(message="Logged out successfully.")
+
+    async def refresh_token(self, request: Request, response: Response) -> AuthSuccessResponse:
+        refresh_token = request.cookies.get("refresh_token")
+        if not refresh_token:
+            raise AppException(
+                status_code=status.HTTP_401_UNAUTHORIZED, 
+                error_code="MISSING_TOKEN", 
+                message="Missing refresh token."
+            )
+        
+        
+        try:
+            payload = decode_token(refresh_token)
+            if payload.get("type") != "refresh":
+                
+                raise AppException(
+                    status_code=status.HTTP_401_UNAUTHORIZED, 
+                    error_code="INVALID_TOKEN", 
+                    message="Invalid token type."
+                )
+            
+            account_id = int(payload.get("sub"))
+            role = payload.get("role")
+            
+            if role == "admin":
+                account = await self.auth_service.get_admin_by_id(account_id)
+            else:
+                account = await self.auth_service.get_user_by_id(account_id)
+                
+            self._set_auth_cookies(response, account_id, role)
+            return AuthSuccessResponse(
+                message="Token refreshed successfully.", 
+                account=account
+            )
+        except Exception as e:
+            raise AppException(
+                status_code=status.HTTP_401_UNAUTHORIZED, 
+                error_code="INVALID_TOKEN", 
+                message="Your session has expired or the token is invalid."
+            )
 
 
 def get_auth_controller(service: AuthService = Depends(get_auth_service)) -> AuthController:

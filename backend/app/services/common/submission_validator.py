@@ -80,23 +80,19 @@ def validate_number(field, value: str):
 
 @SubmissionValidator.register(FieldTypeEnum.date)
 def validate_date(field, value: str):
-    """Validates that the date is not in the past. Expected format: YYYY-MM-DD."""
+    """Validates that the date is real and follows the expected format: YYYY-MM-DD.
+    Rejects non-existent dates such as Feb 31 or Apr 31.
+    """
     try:
-        # Parse the date string using the expected format
-        input_date = datetime.strptime(value, "%Y-%m-%d").date()
-        today = datetime.now().date()
-
-        if input_date < today:
-            raise AppException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                error_code="VALIDATION_ERROR",
-                message=f"Field '{field.label}' must not be a date in the past."
-            )
+        # datetime.strptime strictly validates calendar correctness:
+        # e.g. "2024-02-31" or "2024-04-31" will raise ValueError automatically.
+        datetime.strptime(value, "%Y-%m-%d")
     except ValueError:
         raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             error_code="VALIDATION_ERROR",
-            message=f"Field '{field.label}' has an invalid date format. Expected: YYYY-MM-DD."
+            message=f"Field '{field.label}' contains an invalid date. "
+                    f"Please enter a real date in YYYY-MM-DD format (e.g. 2024-03-15)."
         )
 
 @SubmissionValidator.register(FieldTypeEnum.color)

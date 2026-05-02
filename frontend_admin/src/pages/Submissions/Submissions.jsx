@@ -1,4 +1,5 @@
 import React from 'react';
+import './Submissions.css';
 
 const Submissions = () => {
   return (

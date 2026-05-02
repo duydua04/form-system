@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Response, Request, status
 from ...schemas.common.auth_schema import (
     RegisterRequest, LoginRequest,
     AuthSuccessResponse, LogoutResponse,
@@ -48,6 +48,15 @@ async def logout(
     controller: AuthController = Depends(get_auth_controller)
 ):
     return await controller.logout(response)
+
+@auth_router.post("/refresh", response_model=AuthSuccessResponse, status_code=status.HTTP_200_OK)
+async def refresh_token(
+    request: Request,
+    response: Response,
+    controller: AuthController = Depends(get_auth_controller)
+):
+    return await controller.refresh_token(request, response)
+
 
 @auth_router.get("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
 async def get_user_me(

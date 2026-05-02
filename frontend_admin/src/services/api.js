@@ -1,31 +1,87 @@
 export const BASE_URL = 'http://localhost:8000'; // Assume backend runs on port 8000 by default
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 export const apiCall = async (endpoint, options = {}) => {
   const url = `${BASE_URL}${endpoint}`;
   
   const defaultHeaders = {
     'Content-Type': 'application/json',
-    // include auth token or rely on credentials (cookies)
   };
 
-  const response = await fetch(url, {
+  let response = await fetch(url, {
     ...options,
     headers: {
       ...defaultHeaders,
       ...options.headers,
     },
-    // include cookies in requests if needed by backend (the backend uses HTTP-only cookies)
     credentials: 'include', 
   });
 
-  const data = await response.json();
+  if (response.status === 401 && !endpoint.includes('/api/auth/refresh') && !endpoint.includes('/api/auth/login')) {
+    if (isRefreshing) {
+      return new Promise(function(resolve, reject) {
+        failedQueue.push({ resolve, reject });
+      }).then(() => {
+        return apiCall(endpoint, options);
+      }).catch(err => {
+        return Promise.reject(err);
+      });
+    }
+
+    isRefreshing = true;
+
+    try {
+      const refreshRes = await fetch(`${BASE_URL}/api/auth/refresh`, {
+        method: 'POST',
+        headers: defaultHeaders,
+        credentials: 'include',
+      });
+
+      if (refreshRes.ok) {
+        processQueue(null);
+        // Retry original request
+        response = await fetch(url, {
+          ...options,
+          headers: {
+            ...defaultHeaders,
+            ...options.headers,
+          },
+          credentials: 'include',
+        });
+      } else {
+        processQueue(new Error('Session expired'));
+        window.location.href = '/login';
+        throw new Error('Session expired');
+      }
+    } catch (err) {
+      processQueue(err);
+      window.location.href = '/login';
+      throw err;
+    } finally {
+      isRefreshing = false;
+    }
+  }
+
+  const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    // Handling error structure from backend utils/error_helper
     const errorMessage = data.message || 'An error occurred';
     const errorDetails = data.details || null;
     const error = new Error(errorMessage);
-    error.code = data.error_code;
+    error.code = data?.error_code || response.status;
     error.details = errorDetails;
     throw error;
   }

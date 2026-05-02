@@ -9,6 +9,7 @@ class FieldCreateRequest(BaseModel):
     display_order: int = 0
     is_required: bool = False
     options: Optional[list[str]] = None
+    swap_if_exists: bool = False
 
     @model_validator(mode='after')
     def check_options_logic(self) -> "FieldCreateRequest":
@@ -22,8 +23,10 @@ class FieldCreateRequest(BaseModel):
 class FieldUpdateRequest(BaseModel):
     label: Optional[str] = Field(None, max_length=255)
     field_type: Optional[FieldTypeEnum] = None
+    display_order: Optional[int] = None
     is_required: Optional[bool] = None
     options: Optional[list[str]] = None
+    swap_if_exists: bool = False
 
 
 class FieldResponse(BaseModel):

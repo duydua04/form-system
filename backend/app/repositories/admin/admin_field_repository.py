@@ -19,6 +19,19 @@ class FieldRepository:
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
+    async def get_field_by_display_order(self, form_id: int, display_order: int) -> Optional[Field]:
+        query = select(Field).where(Field.form_id == form_id, Field.display_order == display_order)
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()
+
+    async def swap_display_order(self, field1: Field, field2: Field) -> None:
+        temp = field1.display_order
+        field1.display_order = field2.display_order
+        field2.display_order = temp
+        await self.db.commit()
+        await self.db.refresh(field1)
+        await self.db.refresh(field2)
+
     async def create_field(self, field_data: Dict[str, Any]) -> Field:
         new_field = Field(**field_data)
         self.db.add(new_field)

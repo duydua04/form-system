@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
-import { authService } from '../services/auth.service';
+import { authService } from '../../services/auth.service';
+import './Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -36,9 +37,6 @@ const Login = () => {
     try {
       const response = await authService.loginAdmin(formData.email, formData.password);
       if (response.success) {
-        // Assume auth cookies are set
-        // Can optionally store user info from response.account in context/state
-        localStorage.setItem('admin_user', JSON.stringify(response.account));
         navigate('/forms');
       }
     } catch (err) {

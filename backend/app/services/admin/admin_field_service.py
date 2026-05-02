@@ -41,14 +41,42 @@ class FieldService:
     async def create_field(self, form_id: int, admin_id: int, payload: FieldCreateRequest) -> Field:
         await self._verify_form_ownership(form_id, admin_id)
 
-        field_data = payload.model_dump()
+        # Check for display_order conflict
+        existing_field = await self.field_repo.get_field_by_display_order(form_id, payload.display_order)
+        if existing_field:
+            if payload.swap_if_exists:
+                pass
+            
+            raise AppException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                error_code="DISPLAY_ORDER_CONFLICT",
+                message="Trường thứ tự này đã có."
+            )
+
+        field_data = payload.model_dump(exclude={"swap_if_exists"})
         field_data["form_id"] = form_id
         return await self.field_repo.create_field(field_data)
 
     async def update_field(self, form_id: int, field_id: int, admin_id: int, payload: FieldUpdateRequest) -> Field:
         field = await self._get_field_with_auth(form_id, field_id, admin_id)
 
-        update_data = payload.model_dump(exclude_unset=True)
+        update_data = payload.model_dump(exclude_unset=True, exclude={"swap_if_exists"})
+        
+        if "display_order" in update_data and update_data["display_order"] != field.display_order:
+            existing_field = await self.field_repo.get_field_by_display_order(form_id, update_data["display_order"])
+            if existing_field:
+                if payload.swap_if_exists:
+                    # Swap the display orders
+                    await self.field_repo.swap_display_order(field, existing_field)
+                    # Remove display_order from update_data since it's already swapped
+                    del update_data["display_order"]
+                else:
+                    raise AppException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        error_code="DISPLAY_ORDER_CONFLICT",
+                        message="Trường thứ tự này đã có."
+                    )
+
         return await self.field_repo.update_field(field, update_data)
 
     async def reorder_fields(self, form_id: int, admin_id: int, payload: FieldReorderRequest) -> None:
