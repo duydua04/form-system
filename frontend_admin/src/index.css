@@ -25,13 +25,15 @@ body {
   color: var(--text-primary);
 }
 
-/* Layout */
+/* ══════════════════════════════════════════
+   Layout
+══════════════════════════════════════════ */
 .layout {
   display: flex;
   min-height: 100vh;
 }
 
-/* Sidebar */
+/* ── Sidebar ── */
 .sidebar {
   width: 250px;
   background-color: var(--sidebar-bg);
@@ -79,22 +81,25 @@ body {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   color: #d1f0dc;
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
+  text-decoration: none;
 }
 
 .nav-item:hover {
   background-color: var(--sidebar-hover);
   color: var(--white);
+  transform: translateX(4px);
 }
 
 .nav-item.active {
   background-color: var(--sidebar-active);
   color: var(--white);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .nav-icon {
@@ -102,7 +107,7 @@ body {
   height: 18px;
 }
 
-/* Main Content */
+/* ── Main Content ── */
 .main {
   flex: 1;
   display: flex;
@@ -110,7 +115,7 @@ body {
   overflow: hidden;
 }
 
-/* Topbar */
+/* ── Topbar ── */
 .topbar {
   height: 60px;
   background-color: var(--white);
@@ -155,13 +160,28 @@ body {
   justify-content: center;
   font-size: 14px;
   font-weight: 600;
+  transition: transform 0.2s;
 }
 
-/* Page Content */
+.avatar:hover {
+  transform: scale(1.08);
+}
+
+/* ── Page Content ── */
 .content {
   padding: 24px;
   overflow-y: auto;
   flex: 1;
+}
+
+/* Page entrance animation */
+.page {
+  animation: pageSlideIn 0.4s ease-out;
+}
+
+@keyframes pageSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .page-header {
@@ -183,18 +203,24 @@ body {
   color: var(--text-secondary);
 }
 
-/* Buttons */
+/* ══════════════════════════════════════════
+   Buttons
+══════════════════════════════════════════ */
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   border: none;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
 }
 
 .btn-sm {
@@ -205,10 +231,13 @@ body {
 .btn-primary {
   background-color: var(--primary-color);
   color: var(--white);
+  box-shadow: 0 2px 8px rgba(59, 145, 93, 0.2);
 }
 
 .btn-primary:hover {
   background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 145, 93, 0.3);
 }
 
 .btn-secondary {
@@ -219,11 +248,21 @@ body {
 
 .btn-secondary:hover {
   background-color: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .btn-danger {
   background-color: var(--danger);
   color: var(--white);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .icon {
@@ -236,12 +275,19 @@ body {
   stroke-linejoin: round;
 }
 
-/* Cards & Tables */
+/* ══════════════════════════════════════════
+   Cards & Tables
+══════════════════════════════════════════ */
 .card {
   background-color: var(--white);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
   border: 1px solid var(--border-color);
+  transition: box-shadow 0.25s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .table-wrap {
@@ -261,6 +307,7 @@ th {
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
   border-bottom: 1px solid var(--border-color);
   background-color: #f8fafc;
 }
@@ -270,30 +317,47 @@ td {
   font-size: 14px;
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
+  transition: background-color 0.15s;
+}
+
+tbody tr {
+  transition: all 0.2s ease;
 }
 
 tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: #f0fdf4;
 }
 
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Badges ── */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
+  transition: transform 0.15s;
+}
+
+.badge:hover {
+  transform: scale(1.03);
 }
 
 .badge-active {
   background-color: #ecfdf5;
   color: var(--primary-color);
+  border: 1px solid #bbf7d0;
 }
 
 .badge-draft {
   background-color: #fffbeb;
   color: var(--warning);
+  border: 1px solid #fde68a;
 }
 
 .status-dot {
@@ -304,13 +368,17 @@ tbody tr:hover {
 
 .status-dot.active {
   background-color: var(--primary-color);
+  box-shadow: 0 0 4px rgba(59, 145, 93, 0.4);
 }
 
 .status-dot.draft {
   background-color: var(--warning);
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
 }
 
-/* Form Styles */
+/* ══════════════════════════════════════════
+   Form Styles
+══════════════════════════════════════════ */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -342,19 +410,54 @@ input[type="text"],
 input[type="number"],
 input[type="email"],
 input[type="password"],
+select,
 textarea {
   padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 8px;
   font-size: 14px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
   width: 100%;
+  background-color: #fcfcfc;
 }
 
-input:focus,
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+select:focus,
 textarea:focus {
   border-color: var(--primary-color);
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 145, 93, 0.1);
 }
 
+input[type="text"]:hover,
+input[type="number"]:hover,
+input[type="email"]:hover,
+input[type="password"]:hover,
+select:hover,
+textarea:hover {
+  border-color: #cbd5e1;
+}
 
+/* ══════════════════════════════════════════
+   Utility Animations
+══════════════════════════════════════════ */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

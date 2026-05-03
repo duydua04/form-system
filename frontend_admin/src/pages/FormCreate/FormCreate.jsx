@@ -52,7 +52,7 @@ const FormCreate = () => {
     field_type: 'text',
     display_order: 1,
     is_required: false,
-    options: ''
+    options: ['']
   });
 
   // Drag and Drop State
@@ -118,7 +118,7 @@ const FormCreate = () => {
         field_type: field.field_type,
         display_order: field.display_order,
         is_required: field.is_required,
-        options: field.options ? field.options.join('\n') : ''
+        options: field.options && field.options.length > 0 ? [...field.options] : ['']
       });
     } else {
       setEditingField(null);
@@ -127,7 +127,7 @@ const FormCreate = () => {
         field_type: 'text',
         display_order: fields.length > 0 ? Math.max(...fields.map(f => f.display_order)) + 1 : 1,
         is_required: false,
-        options: ''
+        options: ['']
       });
     }
     setIsFieldModalOpen(true);
@@ -159,7 +159,7 @@ const FormCreate = () => {
       let optionsList = null;
       const needsOptions = ['select', 'multi_select'].includes(fieldData.field_type);
       if (needsOptions) {
-        const opts = fieldData.options.split('\n').map(o => o.trim()).filter(o => o);
+        const opts = fieldData.options.map(o => o.trim()).filter(o => o);
         if (opts.length === 0) {
           setError(`Vui lòng nhập ít nhất 1 option cho loại ${fieldData.field_type === 'select' ? 'Select' : 'Multi Select'}.`);
           return;
@@ -510,17 +510,57 @@ const FormCreate = () => {
               {['select', 'multi_select'].includes(fieldData.field_type) && (
                 <div className="form-group">
                   <label>Các lựa chọn (Options) <span className="required-star">*</span></label>
-                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                    Nhập mỗi lựa chọn trên 1 dòng
-                    {fieldData.field_type === 'multi_select' && <span style={{ color: 'var(--primary-color)', fontWeight: 500 }}> — Người dùng có thể chọn nhiều</span>}
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                    {fieldData.field_type === 'multi_select'
+                      ? 'Người dùng có thể chọn nhiều lựa chọn'
+                      : 'Người dùng chỉ được chọn 1 lựa chọn'
+                    }
                   </p>
-                  <textarea
-                    name="options"
-                    rows="4"
-                    placeholder="Lựa chọn A&#10;Lựa chọn B&#10;Lựa chọn C"
-                    value={fieldData.options}
-                    onChange={handleFieldChange}
-                  ></textarea>
+                  <div className="options-list">
+                    {fieldData.options.map((opt, idx) => (
+                      <div key={idx} className="option-row">
+                        <span className="option-index">{idx + 1}</span>
+                        <input
+                          type="text"
+                          className="option-input"
+                          placeholder={`Lựa chọn ${idx + 1}`}
+                          value={opt}
+                          onChange={(e) => {
+                            const newOpts = [...fieldData.options];
+                            newOpts[idx] = e.target.value;
+                            setFieldData(prev => ({ ...prev, options: newOpts }));
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              setFieldData(prev => ({ ...prev, options: [...prev.options, ''] }));
+                            }
+                          }}
+                        />
+                        {fieldData.options.length > 1 && (
+                          <button
+                            type="button"
+                            className="option-remove-btn"
+                            onClick={() => {
+                              const newOpts = fieldData.options.filter((_, i) => i !== idx);
+                              setFieldData(prev => ({ ...prev, options: newOpts }));
+                            }}
+                            title="Xóa lựa chọn"
+                          >
+                            <X className="icon" style={{ width: 14, height: 14 }} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="option-add-btn"
+                    onClick={() => setFieldData(prev => ({ ...prev, options: [...prev.options, ''] }))}
+                  >
+                    <Plus className="icon" style={{ width: 14, height: 14 }} />
+                    Thêm lựa chọn
+                  </button>
                 </div>
               )}
 
