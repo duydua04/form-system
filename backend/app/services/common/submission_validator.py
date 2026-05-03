@@ -84,8 +84,6 @@ def validate_date(field, value: str):
     Rejects non-existent dates such as Feb 31 or Apr 31.
     """
     try:
-        # datetime.strptime strictly validates calendar correctness:
-        # e.g. "2024-02-31" or "2024-04-31" will raise ValueError automatically.
         datetime.strptime(value, "%Y-%m-%d")
     except ValueError:
         raise AppException(

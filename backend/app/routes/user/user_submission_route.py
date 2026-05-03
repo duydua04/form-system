@@ -60,7 +60,7 @@ async def list_my_submissions(
     return await controller.get_my_submissions(user_id, page, limit)
 
 @user_form_router.get(
-    "/api/forms/{id:int}",
+    "/api/user/forms/{id:int}",
     response_model=FormDetailUserResponse,
     status_code=status.HTTP_200_OK
 )

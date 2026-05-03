@@ -1,0 +1,175 @@
+/* Form Detail Page */
+.form-detail-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 24px;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: var(--primary-color);
+}
+
+/* Main Form Card */
+.form-fill-card {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  animation: slideDownFade 0.6s ease-out;
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-fill-header {
+  background-color: var(--sidebar-bg);
+  padding: 32px;
+  color: #ffffff;
+}
+
+.form-fill-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.form-fill-desc {
+  font-size: 14px;
+  color: #a7dcb5;
+  line-height: 1.6;
+}
+
+/* Fields Container */
+.form-fields-list {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-height: 500px; /* Specific frame height as requested */
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) #f0fdf4;
+}
+
+.form-fields-list:hover {
+  border-color: var(--primary-color);
+}
+
+.empty-fields {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.field-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.3s ease;
+}
+
+/* Hover slide effect for fields */
+.field-item:hover {
+  transform: translateX(5px);
+}
+
+.field-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.field-required {
+  color: var(--danger);
+  margin-left: 4px;
+}
+
+/* Input Styles */
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 15px;
+  transition: all 0.2s;
+  background-color: #fcfcfc;
+}
+
+.form-input:focus {
+  border-color: var(--primary-color);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(59, 145, 93, 0.1);
+  outline: none;
+}
+
+/* Action Footer */
+.form-fill-footer {
+  padding: 24px 32px;
+  background-color: #f8fafc;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.submit-btn {
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(59, 145, 93, 0.2);
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 145, 93, 0.3);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Success State */
+.success-card {
+  text-align: center;
+  padding: 60px 40px;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+}
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
