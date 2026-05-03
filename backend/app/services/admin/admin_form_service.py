@@ -8,6 +8,7 @@ from ...schemas.admin.admin_form_schema import FormCreateRequest, FormUpdateRequ
 from ...schemas.common.enum_schema import TimeFilterEnum
 from ...utils.error_helper.exceptions import AppException
 from ...repositories.admin.admin_form_repository import FormRepository
+from ...schemas.common.pagination_schema import PaginatedResponse  # Import schema
 
 class FormService:
     def __init__(self, form_repo: FormRepository):
@@ -17,7 +18,7 @@ class FormService:
             self,
             admin_id: int, page: int, limit: int,
             time_filter: TimeFilterEnum | None = None
-    ):
+    ) -> PaginatedResponse:
         offset = (page - 1) * limit
         forms, total = await self.form_repo.get_forms(
             admin_id=admin_id,
@@ -26,13 +27,13 @@ class FormService:
             time_filter=time_filter
         )
 
-        return {
-            "items": forms,
-            "total": total,
-            "page": page,
-            "limit": limit,
-            "total_pages": math.ceil(total / limit) if total > 0 else 0
-        }
+        return PaginatedResponse(
+            items=forms,
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=math.ceil(total / limit) if total > 0 else 0
+        )
 
     async def create_form(self, admin_id: int, payload: FormCreateRequest) -> Form:
         form_data = payload.model_dump()

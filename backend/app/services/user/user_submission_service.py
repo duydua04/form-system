@@ -11,22 +11,23 @@ from ...services.common.submission_validator import SubmissionValidator
 from ...schemas.user.user_submission_schema import FormSubmitRequest
 from ...schemas.common.enum_schema import TimeFilterEnum
 from ...repositories.user.user_submission_repository import UserSubmissionRepository
+from ...schemas.common.pagination_schema import PaginatedResponse  # Import schema
 
 class UserSubmissionService:
     def __init__(self, repo: UserSubmissionRepository):
         self.repo = repo
 
-    async def get_active_forms(self, page: int, limit: int, time_filter: TimeFilterEnum | None = None):
+    async def get_active_forms(self, page: int, limit: int, time_filter: TimeFilterEnum | None = None) -> PaginatedResponse:
         offset = (page - 1) * limit
         forms, total = await self.repo.get_active_forms(offset, limit, time_filter)
 
-        return {
-            "items": forms,
-            "total": total,
-            "page": page,
-            "limit": limit,
-            "total_pages": math.ceil(total / limit) if total > 0 else 0
-        }
+        return PaginatedResponse(
+            items=forms,
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=math.ceil(total / limit) if total > 0 else 0
+        )
 
     async def submit_form(self, form_id: int, user_id: int, payload: FormSubmitRequest) -> Submission:
         form = await self.repo.get_form_detail_active(form_id)
@@ -53,7 +54,7 @@ class UserSubmissionService:
 
         return await self.repo.create_submission(form_id, user_id, valid_answers_objects)
 
-    async def get_user_submissions(self, user_id: int, page: int, limit: int):
+    async def get_user_submissions(self, user_id: int, page: int, limit: int) -> PaginatedResponse:
         offset = (page - 1) * limit
         submissions, total = await self.repo.get_user_submissions(user_id, offset, limit)
 
@@ -69,13 +70,13 @@ class UserSubmissionService:
                 "form_description": sub.form.description if sub.form else None,
             })
 
-        return {
-            "items": items,
-            "total": total,
-            "page": page,
-            "limit": limit,
-            "total_pages": math.ceil(total / limit) if total > 0 else 0
-        }
+        return PaginatedResponse(
+            items=items,
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=math.ceil(total / limit) if total > 0 else 0
+        )
 
     async def get_submission_detail(self, submission_id: int, user_id: int):
         submission = await self.repo.get_submission_detail(submission_id, user_id)
