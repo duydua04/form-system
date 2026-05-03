@@ -4,6 +4,7 @@ import UserLayout from './layouts/UserLayout';
 import Login from './pages/Login/Login';
 import FormsList from './pages/FormsList/FormsList';
 import FormDetail from './pages/FormDetail/FormDetail';
+import Submissions from './pages/Submissions/Submissions';
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
           <Route index element={<Navigate to="/forms" replace />} />
           <Route path="forms" element={<FormsList />} />
           <Route path="forms/:id" element={<FormDetail />} />
-          <Route path="submissions" element={<div>Lịch sử nộp (Coming Soon)</div>} />
+          <Route path="submissions" element={<Submissions />} />
           <Route path="profile" element={<div>Hồ sơ (Coming Soon)</div>} />
           <Route path="notifications" element={<div>Thông báo (Coming Soon)</div>} />
         </Route>
