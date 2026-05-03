@@ -9,7 +9,6 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
-  Hash,
   ExternalLink,
 } from 'lucide-react';
 import { apiCall } from '../../services/api';
@@ -131,10 +130,6 @@ const Submissions = () => {
         <table className="sub-table">
           <thead>
             <tr>
-              <th className="col-id">
-                <Hash size={13} />
-                ID
-              </th>
               <th className="col-form">Biểu mẫu</th>
               <th className="col-date">Ngày nộp</th>
               <th className="col-time">Giờ nộp</th>
@@ -150,11 +145,6 @@ const Submissions = () => {
                   className="sub-row"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  {/* Submission ID */}
-                  <td className="col-id">
-                    <span className="sub-id-badge">#{sub.id}</span>
-                  </td>
-
                   {/* Form info — now showing title + description */}
                   <td className="col-form">
                     <div className="sub-form-cell">
@@ -164,7 +154,7 @@ const Submissions = () => {
                       <div className="sub-form-info">
                         <div className="sub-form-label">{sub.form_title}</div>
                         <div className="sub-form-desc">
-                          {sub.form_description || `Biểu mẫu #${sub.form_id}`}
+                          {sub.form_description || 'Biểu mẫu đã nộp'}
                         </div>
                       </div>
                     </div>

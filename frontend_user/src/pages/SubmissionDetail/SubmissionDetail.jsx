@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
-  FileText,
   Calendar,
   Clock,
-  User,
   Loader2,
   AlertCircle,
   CheckCircle,
@@ -112,20 +110,12 @@ const SubmissionDetail = () => {
 
         <div className="sd-meta-bar">
           <div className="sd-meta-item">
-            <FileText size={14} />
-            <span>Mã nộp: <strong>#{submission.id}</strong></span>
-          </div>
-          <div className="sd-meta-item">
             <Calendar size={14} />
             <span>{dt.date}</span>
           </div>
           <div className="sd-meta-item">
             <Clock size={14} />
             <span>{dt.time}</span>
-          </div>
-          <div className="sd-meta-item">
-            <User size={14} />
-            <span>User ID: <strong>#{submission.user_id}</strong></span>
           </div>
         </div>
       </div>

@@ -106,13 +106,43 @@ def validate_color(field, value: str):
 
 @SubmissionValidator.register(FieldTypeEnum.select)
 def validate_select(field, value: str):
-    """Validates that the value exists"""
+    """Validates that the value exists and is a single option."""
+    # Note: value comes as a string. If it contains a comma, it might be an attempt to multi-select.
+    # But we check against the options list directly.
     if not field.options or value not in field.options:
         raise AppException(
             status_code=status.HTTP_400_BAD_REQUEST,
             error_code="VALIDATION_ERROR",
-            message=f"Value '{value}' is not a valid option for field '{field.label}'."
+            message=f"Giá trị '{value}' không hợp lệ cho trường '{field.label}' hoặc bạn đang chọn nhiều hơn 1 tùy chọn."
         )
+
+@SubmissionValidator.register(FieldTypeEnum.multi_select)
+def validate_multi_select(field, value: str):
+    """Validates that all values in the comma-separated string exist in options."""
+    if not field.options:
+        raise AppException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            error_code="VALIDATION_ERROR",
+            message=f"Trường '{field.label}' chưa được cấu hình các tùy chọn."
+        )
+    
+    # Split by comma and trim whitespace
+    selected_values = [v.strip() for v in value.split(",") if v.strip()]
+    
+    if not selected_values and field.is_required:
+        raise AppException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            error_code="VALIDATION_ERROR",
+            message=f"Trường '{field.label}' yêu cầu ít nhất một lựa chọn."
+        )
+
+    for val in selected_values:
+        if val not in field.options:
+            raise AppException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                error_code="VALIDATION_ERROR",
+                message=f"Giá trị '{val}' không nằm trong danh sách tùy chọn của trường '{field.label}'."
+            )
 
 
 @SubmissionValidator.register(FieldTypeEnum.file)

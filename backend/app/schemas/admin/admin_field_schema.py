@@ -13,10 +13,11 @@ class FieldCreateRequest(BaseModel):
 
     @model_validator(mode='after')
     def check_options_logic(self) -> "FieldCreateRequest":
-        if self.field_type == FieldTypeEnum.select and not self.options:
-            raise ValueError("Cần cung cấp 'options' khi loại field là 'select'.")
-        if self.field_type != FieldTypeEnum.select and self.options is not None:
-            raise ValueError("'options' phải để trống (null) khi loại field không phải là 'select'.")
+        allowed_options_types = [FieldTypeEnum.select, FieldTypeEnum.multi_select]
+        if self.field_type in allowed_options_types and not self.options:
+            raise ValueError("Cần cung cấp 'options' khi loại field là 'select' hoặc 'multi_select'.")
+        if self.field_type not in allowed_options_types and self.options is not None:
+            raise ValueError("'options' phải để trống (null) khi loại field không phải là 'select' hoặc 'multi_select'.")
         return self
 
 

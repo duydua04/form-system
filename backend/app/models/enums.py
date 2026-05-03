@@ -10,4 +10,5 @@ class FieldTypeEnum(enum.StrEnum):
     date = "date"
     color = "color"
     select = "select"
+    multi_select = "multi_select"
     file = "file"

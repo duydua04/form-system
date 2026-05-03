@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Save, X, ChevronRight, Plus, GripVertical, Trash2, Edit2, Settings, Type, Hash, Calendar, Palette, List as ListIcon, FileUp } from 'lucide-react';
+import { Save, X, ChevronRight, Plus, GripVertical, Trash2, Edit2, Settings, Type, Hash, Calendar, Palette, List as ListIcon, FileUp, ListChecks } from 'lucide-react';
 import { formService } from '../../services/form.service';
 import ConfirmModal from '../../components/ConfirmModal';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
@@ -13,6 +13,7 @@ const FieldTypeIcons = {
   date: <Calendar className="icon" style={{width: 14, height: 14}} />,
   color: <Palette className="icon" style={{width: 14, height: 14}} />,
   select: <ListIcon className="icon" style={{width: 14, height: 14}} />,
+  multi_select: <ListChecks className="icon" style={{width: 14, height: 14}} />,
   file: <FileUp className="icon" style={{width: 14, height: 14}} />
 };
 
@@ -21,7 +22,8 @@ const FieldTypeLabels = {
   number: 'Số (Number)',
   date: 'Ngày tháng (Date)',
   color: 'Màu sắc (Color)',
-  select: 'Lựa chọn (Select)',
+  select: 'Chọn 1 (Select)',
+  multi_select: 'Chọn nhiều (Multi Select)',
   file: 'Tải tệp lên (File)'
 };
 
@@ -155,10 +157,11 @@ const FormCreate = () => {
       }
 
       let optionsList = null;
-      if (fieldData.field_type === 'select') {
+      const needsOptions = ['select', 'multi_select'].includes(fieldData.field_type);
+      if (needsOptions) {
         const opts = fieldData.options.split('\n').map(o => o.trim()).filter(o => o);
         if (opts.length === 0) {
-          setError('Vui lòng nhập ít nhất 1 option cho loại Select.');
+          setError(`Vui lòng nhập ít nhất 1 option cho loại ${fieldData.field_type === 'select' ? 'Select' : 'Multi Select'}.`);
           return;
         }
         optionsList = opts;
@@ -427,7 +430,7 @@ const FormCreate = () => {
                           <span style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#f1f5f9', padding: '2px 8px', borderRadius: '12px' }}>
                             {FieldTypeIcons[field.field_type]} {FieldTypeLabels[field.field_type]}
                           </span>
-                          {field.field_type === 'select' && field.options && (
+                          {['select', 'multi_select'].includes(field.field_type) && field.options && (
                             <span>{field.options.length} lựa chọn</span>
                           )}
                         </div>
@@ -504,10 +507,13 @@ const FormCreate = () => {
                 </div>
               </div>
 
-              {fieldData.field_type === 'select' && (
+              {['select', 'multi_select'].includes(fieldData.field_type) && (
                 <div className="form-group">
                   <label>Các lựa chọn (Options) <span className="required-star">*</span></label>
-                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Nhập mỗi lựa chọn trên 1 dòng</p>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                    Nhập mỗi lựa chọn trên 1 dòng
+                    {fieldData.field_type === 'multi_select' && <span style={{ color: 'var(--primary-color)', fontWeight: 500 }}> — Người dùng có thể chọn nhiều</span>}
+                  </p>
                   <textarea
                     name="options"
                     rows="4"

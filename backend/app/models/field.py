@@ -28,7 +28,7 @@ class Field(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "(field_type = 'select' AND options IS NOT NULL) OR (field_type != 'select' AND options IS NULL)",
+            "(field_type IN ('select', 'multi_select') AND options IS NOT NULL) OR (field_type NOT IN ('select', 'multi_select') AND options IS NULL)",
             name="check_options_logic"
         ),
     )
