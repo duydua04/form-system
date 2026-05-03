@@ -29,6 +29,32 @@ class SubmissionResponse(BaseModel):
     form_id: int
     user_id: int
     submitted_at: datetime
+    form_title: str
+    form_description: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AnswerDetailResponse(BaseModel):
+    """Chi tiết 1 câu trả lời trong submission"""
+    id: int
+    field_id: int
+    field_label: str
+    field_type: FieldTypeEnum
+    value: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SubmissionDetailResponse(BaseModel):
+    """Chi tiết đầy đủ 1 submission"""
+    id: int
+    form_id: int
+    form_title: str
+    form_description: Optional[str] = None
+    user_id: int
+    submitted_at: datetime
+    answers: List[AnswerDetailResponse]
 
     model_config = ConfigDict(from_attributes=True)
 

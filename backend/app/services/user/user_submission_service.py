@@ -57,12 +57,58 @@ class UserSubmissionService:
         offset = (page - 1) * limit
         submissions, total = await self.repo.get_user_submissions(user_id, offset, limit)
 
+        # Map submission + form info vào response
+        items = []
+        for sub in submissions:
+            items.append({
+                "id": sub.id,
+                "form_id": sub.form_id,
+                "user_id": sub.user_id,
+                "submitted_at": sub.submitted_at,
+                "form_title": sub.form.title if sub.form else "Biểu mẫu đã xoá",
+                "form_description": sub.form.description if sub.form else None,
+            })
+
         return {
-            "items": submissions,
+            "items": items,
             "total": total,
             "page": page,
             "limit": limit,
             "total_pages": math.ceil(total / limit) if total > 0 else 0
+        }
+
+    async def get_submission_detail(self, submission_id: int, user_id: int):
+        submission = await self.repo.get_submission_detail(submission_id, user_id)
+
+        if not submission:
+            raise AppException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                error_code="SUBMISSION_NOT_FOUND",
+                message="Không tìm thấy bài nộp hoặc bạn không có quyền xem."
+            )
+
+        # Map answers kèm field info
+        answers = []
+        for ans in submission.answers:
+            answers.append({
+                "id": ans.id,
+                "field_id": ans.field_id,
+                "field_label": ans.field.label if ans.field else "Trường đã xoá",
+                "field_type": ans.field.field_type if ans.field else "text",
+                "value": ans.value,
+            })
+
+        # Sắp xếp theo field_id
+        answers.sort(key=lambda a: a.get("field_id", 0))
+
+        return {
+            "id": submission.id,
+            "form_id": submission.form_id,
+            "form_title": submission.form.title if submission.form else "Biểu mẫu đã xoá",
+            "form_description": submission.form.description if submission.form else None,
+            "user_id": submission.user_id,
+            "submitted_at": submission.submitted_at,
+            "answers": answers,
         }
 
     async def get_form_detail(self, form_id: int) -> Form:

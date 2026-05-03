@@ -5,7 +5,9 @@ from ...controllers.user.user_submission_controller import UserSubmissionControl
 from ...schemas.user.user_submission_schema import (
     FormActiveResponse,
     FormSubmitRequest,
-    SubmissionResponse, FormDetailUserResponse
+    SubmissionResponse,
+    SubmissionDetailResponse,
+    FormDetailUserResponse
 )
 from ...schemas.common.pagination_schema import PaginatedResponse
 from ...schemas.common.enum_schema import TimeFilterEnum
@@ -71,3 +73,17 @@ async def get_form_detail(
 ):
     """Lấy chi tiết 1 form kèm danh sách các trường nhập liệu (Fields)"""
     return await controller.get_detail(form_id=id)
+
+
+@user_form_router.get(
+    "/api/submissions/{id:int}",
+    response_model=SubmissionDetailResponse,
+    status_code=status.HTTP_200_OK
+)
+async def get_submission_detail(
+    id: int,
+    user_id: int = Depends(require_user),
+    controller: UserSubmissionController = Depends(get_user_submission_controller)
+):
+    """Xem chi tiết 1 bài nộp kèm danh sách câu trả lời"""
+    return await controller.get_submission_detail(submission_id=id, user_id=user_id)

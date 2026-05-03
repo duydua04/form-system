@@ -135,7 +135,7 @@ const Submissions = () => {
                 <Hash size={13} />
                 ID
               </th>
-              <th className="col-form">Form ID</th>
+              <th className="col-form">Biểu mẫu</th>
               <th className="col-date">Ngày nộp</th>
               <th className="col-time">Giờ nộp</th>
               <th className="col-action"></th>
@@ -155,15 +155,17 @@ const Submissions = () => {
                     <span className="sub-id-badge">#{sub.id}</span>
                   </td>
 
-                  {/* Form info */}
+                  {/* Form info — now showing title + description */}
                   <td className="col-form">
                     <div className="sub-form-cell">
                       <div className="sub-form-icon-wrap">
                         <FileText size={14} />
                       </div>
-                      <div>
-                        <div className="sub-form-label">Biểu mẫu</div>
-                        <div className="sub-form-id">ID #{sub.form_id}</div>
+                      <div className="sub-form-info">
+                        <div className="sub-form-label">{sub.form_title}</div>
+                        <div className="sub-form-desc">
+                          {sub.form_description || `Biểu mẫu #${sub.form_id}`}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -181,15 +183,15 @@ const Submissions = () => {
                     <span className="sub-time-badge">{dt.time}</span>
                   </td>
 
-                  {/* Action */}
+                  {/* Action — link to submission detail */}
                   <td className="col-action">
                     <button
                       className="sub-view-btn"
-                      onClick={() => navigate(`/forms/${sub.form_id}`)}
-                      title="Xem lại biểu mẫu"
+                      onClick={() => navigate(`/submissions/${sub.id}`)}
+                      title="Xem chi tiết bài nộp"
                     >
                       <ExternalLink size={14} />
-                      Xem form
+                      Chi tiết
                     </button>
                   </td>
                 </tr>

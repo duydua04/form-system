@@ -58,9 +58,13 @@ class UserSubmissionRepository:
         return new_submission
 
     async def get_user_submissions(self, user_id: int, offset: int, limit: int) -> Tuple[List[Submission], int]:
-        query = select(Submission).where(Submission.user_id == user_id)
+        query = select(Submission).options(
+            selectinload(Submission.form)
+        ).where(Submission.user_id == user_id)
 
-        total_query = select(func.count()).select_from(query.subquery())
+        total_query = select(func.count()).select_from(
+            select(Submission.id).where(Submission.user_id == user_id).subquery()
+        )
         total = (await self.db.execute(total_query)).scalar() or 0
 
         query = query.order_by(Submission.submitted_at.desc())
@@ -70,3 +74,15 @@ class UserSubmissionRepository:
         submissions = list(result.scalars().all())
 
         return submissions, total
+
+    async def get_submission_detail(self, submission_id: int, user_id: int) -> Optional[Submission]:
+        """Lấy chi tiết 1 submission kèm answers + field info, chỉ của user đang đăng nhập"""
+        query = select(Submission).options(
+            selectinload(Submission.form),
+            selectinload(Submission.answers).selectinload(SubmissionAnswer.field)
+        ).where(
+            Submission.id == submission_id,
+            Submission.user_id == user_id
+        )
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()

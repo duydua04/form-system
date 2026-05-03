@@ -20,5 +20,8 @@ class UserSubmissionController:
     async def get_detail(self, form_id: int):
         return await self.service.get_form_detail(form_id)
 
+    async def get_submission_detail(self, submission_id: int, user_id: int):
+        return await self.service.get_submission_detail(submission_id, user_id)
+
 def get_user_submission_controller(service: UserSubmissionService = Depends(get_user_submission_service)) -> UserSubmissionController:
     return UserSubmissionController(service)
