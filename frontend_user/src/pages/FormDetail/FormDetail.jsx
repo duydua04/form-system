@@ -14,13 +14,12 @@ const ERROR_MAP = [
   { pattern: /must be a valid HEX color/i,               vi: (field) => `Trường "${field}" phải là mã màu HEX hợp lệ (VD: #FF5733).` },
   { pattern: /is not a valid option/i,                   vi: (field) => `Giá trị của trường "${field}" không nằm trong danh sách cho phép.` },
   { pattern: /only accepts the following formats/i,      vi: (field) => `Trường "${field}" chỉ chấp nhận các định dạng tệp được cho phép.` },
+  // Map thêm lỗi Upload File
+  { pattern: /chấp nhận định dạng file \.pdf/i,          vi: (field) => `Trường "${field}": Chỉ cho phép tải lên tệp định dạng .pdf.` },
+  { pattern: /vượt quá giới hạn 5MB/i,                   vi: (field) => `Trường "${field}": Kích thước tệp quá lớn. Tối đa 5MB.` },
 ];
 
-/**
- * Trích xuất tên field từ message backend (dạng "Field 'Tên trường' ...")
- * và chuyển message sang tiếng Việt thân thiện.
- */
-const parseBackendError = (error) => {
+const parseBackendError = (error, fieldNameFallback = null) => {
   const msg = error.message || '';
   const code = error.code || '';
   const details = error.details || null;
@@ -35,9 +34,9 @@ const parseBackendError = (error) => {
   }
 
   const fieldMatch = msg.match(/[Ff]ield\s+'([^']+)'/);
-  const fieldName = fieldMatch ? fieldMatch[1] : null;
+  const fieldName = fieldMatch ? fieldMatch[1] : fieldNameFallback;
 
-  if (code === 'VALIDATION_ERROR' && fieldName) {
+  if ((code === 'VALIDATION_ERROR' || code === 'INVALID_FILE_TYPE' || code === 'FILE_TOO_LARGE') && fieldName) {
     for (const rule of ERROR_MAP) {
       const match = msg.match(rule.pattern);
       if (match) {
@@ -58,54 +57,34 @@ const parseBackendError = (error) => {
   }
 
   if (code === 'FORM_NOT_FOUND') {
-    return {
-      type: 'error',
-      title: 'Biểu mẫu không tồn tại',
-      messages: ['Biểu mẫu đã bị đóng hoặc không tồn tại. Vui lòng quay lại danh sách.'],
-      fieldName: null,
-    };
+    return { type: 'error', title: 'Biểu mẫu không tồn tại', messages: ['Biểu mẫu đã bị đóng hoặc không tồn tại.'], fieldName: null };
   }
 
-  return {
-    type: 'error',
-    title: 'Đã xảy ra lỗi',
-    messages: [msg || 'Có lỗi không xác định xảy ra. Vui lòng thử lại.'],
-    fieldName: null,
-  };
+  return { type: 'error', title: 'Đã xảy ra lỗi', messages: [msg || 'Có lỗi không xác định xảy ra. Vui lòng thử lại.'], fieldName: null };
 };
 
 /* ── Error Toast Component ── */
 const ErrorToast = ({ errorInfo, onClose }) => {
   const timerRef = useRef(null);
-
   useEffect(() => {
-    timerRef.current = setTimeout(() => {
-      onClose();
-    }, 8000);
+    timerRef.current = setTimeout(() => onClose(), 8000);
     return () => clearTimeout(timerRef.current);
   }, [onClose]);
 
   if (!errorInfo) return null;
-
   const isValidation = errorInfo.type === 'validation';
   const IconComponent = isValidation ? AlertTriangle : AlertCircle;
 
   return (
     <div className={`error-toast ${isValidation ? 'error-toast--warning' : 'error-toast--danger'} error-toast--visible`}>
-      <div className="error-toast__icon">
-        <IconComponent size={20} />
-      </div>
+      <div className="error-toast__icon"><IconComponent size={20} /></div>
       <div className="error-toast__content">
         <div className="error-toast__title">{errorInfo.title}</div>
         <ul className="error-toast__list">
-          {errorInfo.messages.map((msg, i) => (
-            <li key={i}>{msg}</li>
-          ))}
+          {errorInfo.messages.map((msg, i) => <li key={i}>{msg}</li>)}
         </ul>
       </div>
-      <button className="error-toast__close" onClick={onClose} aria-label="Đóng">
-        <X size={16} />
-      </button>
+      <button className="error-toast__close" onClick={onClose} aria-label="Đóng"><X size={16} /></button>
       <div className="error-toast__progress" />
     </div>
   );
@@ -123,7 +102,6 @@ const FormDetail = () => {
   const [errorFieldName, setErrorFieldName] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
-  // State for answers: { field_id: value (string or array) }
   const [answers, setAnswers] = useState({});
 
   useEffect(() => {
@@ -136,11 +114,9 @@ const FormDetail = () => {
       const response = await apiCall(`/api/user/forms/${id}`);
       setForm(response);
 
-      // Initialize answers state
       const initialAnswers = {};
       if (response && response.fields) {
         response.fields.forEach(field => {
-          // Nếu field type là multi_select, khởi tạo giá trị mảng rỗng
           initialAnswers[field.id] = field.field_type === 'multi_select' ? [] : '';
         });
       }
@@ -153,71 +129,80 @@ const FormDetail = () => {
   };
 
   const handleInputChange = (fieldId, value) => {
-    setAnswers(prev => ({
-      ...prev,
-      [fieldId]: value
-    }));
-    if (submitError) {
-      setSubmitError(null);
-      setErrorFieldName(null);
-    }
+    setAnswers(prev => ({ ...prev, [fieldId]: value }));
+    clearSubmitError();
   };
 
   const handleMultiSelectChange = (fieldId, optionValue, isChecked) => {
     setAnswers(prev => {
       const currentSelected = prev[fieldId] || [];
-      let newSelected;
-
-      if (isChecked) {
-        newSelected = [...currentSelected, optionValue];
-      } else {
-        newSelected = currentSelected.filter(val => val !== optionValue);
-      }
-
-      return {
-        ...prev,
-        [fieldId]: newSelected
-      };
+      const newSelected = isChecked
+        ? [...currentSelected, optionValue]
+        : currentSelected.filter(val => val !== optionValue);
+      return { ...prev, [fieldId]: newSelected };
     });
+    clearSubmitError();
+  };
 
-    if (submitError) {
-      setSubmitError(null);
-      setErrorFieldName(null);
-    }
+  const uploadSingleFile = async (fileObject) => {
+    const formData = new FormData();
+    formData.append('file', fileObject);
+    const res = await apiCall('/api/upload/file', {
+      method: 'POST',
+      body: formData
+    });
+    return res.data.file_path;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    setSubmitError(null);
-    setErrorFieldName(null);
+    clearSubmitError();
 
     try {
-      // Map answers to the format expected by backend
-      const payload = {
-        answers: Object.keys(answers).map(fieldId => {
-          let value = answers[fieldId];
+      const payloadAnswers = [];
 
-          // Chuyển mảng từ multi_select thành chuỗi phân cách bởi dấu phẩy
-          if (Array.isArray(value)) {
-            value = value.length > 0 ? value.join(', ') : null;
+      // Loop qua tất cả các câu trả lời
+      for (const fieldId of Object.keys(answers)) {
+        let value = answers[fieldId];
+        const fieldConfig = form.fields.find(f => f.id === parseInt(fieldId));
+
+        // 1. Xử lý Multi Select
+        if (Array.isArray(value)) {
+          value = value.length > 0 ? value.join(', ') : null;
+        }
+
+        // 2. Xử lý File Upload (Nếu value là File object)
+        if (value instanceof File) {
+          try {
+            const uploadedPath = await uploadSingleFile(value);
+            value = uploadedPath;
+            // Lưu lại path vào state phòng khi form submit lỗi ở trường khác
+            setAnswers(prev => ({ ...prev, [fieldId]: uploadedPath }));
+          } catch (uploadErr) {
+            // Ném lỗi ra catch tổng, kèm tên field để focus
+            const err = new Error(uploadErr.message);
+            err.code = uploadErr.code;
+            err.fieldName = fieldConfig?.label;
+            throw err;
           }
+        }
 
-          return {
-            field_id: parseInt(fieldId),
-            value: value ? String(value) : null
-          };
-        })
-      };
+        payloadAnswers.push({
+          field_id: parseInt(fieldId),
+          value: value ? String(value) : null
+        });
+      }
 
+      // 3. Gửi Payload cuối cùng
       await apiCall(`/api/forms/${id}/submit`, {
         method: 'POST',
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ answers: payloadAnswers })
       });
 
       setSubmitted(true);
     } catch (err) {
-      const parsed = parseBackendError(err);
+      const parsed = parseBackendError(err, err.fieldName);
       setSubmitError(parsed);
       setErrorFieldName(parsed.fieldName);
 
@@ -225,9 +210,7 @@ const FormDetail = () => {
         const errorField = form.fields.find(f => f.label === parsed.fieldName);
         if (errorField) {
           const el = document.getElementById(`field-${errorField.id}`);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }
     } finally {
@@ -240,90 +223,34 @@ const FormDetail = () => {
     setErrorFieldName(null);
   };
 
-  const isFieldError = (field) => {
-    return errorFieldName && field.label === errorFieldName;
-  };
+  const isFieldError = (field) => errorFieldName && field.label === errorFieldName;
 
-  if (loading) {
-    return (
-      <div className="loading-state">
-        <Loader2 className="animate-spin" size={32} />
-        <p>Đang tải cấu trúc biểu mẫu...</p>
-      </div>
-    );
-  }
-
-  if (loadError && !form) {
-    return (
-      <div className="empty-state">
-        <AlertCircle size={48} color="var(--danger)" />
-        <h3>Đã xảy ra lỗi</h3>
-        <p>{loadError}</p>
-        <button className="btn btn-primary" onClick={fetchFormDetail}>Thử lại</button>
-      </div>
-    );
-  }
-
-  if (submitted) {
-    return (
-      <div className="form-detail-container">
-        <div className="success-card slide-up">
-          <CheckCircle className="success-icon" size={64} />
-          <h2>Gửi thành công!</h2>
-          <p>Cảm ơn bạn đã hoàn thành biểu mẫu này. Thông tin của bạn đã được ghi nhận.</p>
-          <div style={{ marginTop: '32px' }}>
-            <button className="btn btn-primary" onClick={() => navigate('/forms')}>
-              Quay lại danh sách
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="loading-state"><Loader2 className="animate-spin" size={32} /><p>Đang tải cấu trúc biểu mẫu...</p></div>;
+  if (loadError && !form) return <div className="empty-state"><AlertCircle size={48} color="var(--danger)" /><h3>Đã xảy ra lỗi</h3><p>{loadError}</p><button className="btn btn-primary" onClick={fetchFormDetail}>Thử lại</button></div>;
+  if (submitted) return <div className="form-detail-container"><div className="success-card slide-up"><CheckCircle className="success-icon" size={64} /><h2>Gửi thành công!</h2><p>Cảm ơn bạn đã hoàn thành biểu mẫu này. Thông tin của bạn đã được ghi nhận.</p><div style={{ marginTop: '32px' }}><button className="btn btn-primary" onClick={() => navigate('/forms')}>Quay lại danh sách</button></div></div></div>;
 
   return (
     <div className="form-detail-container">
-      <Link to="/forms" className="back-link">
-        <ArrowLeft size={16} />
-        Quay lại danh sách
-      </Link>
+      <Link to="/forms" className="back-link"><ArrowLeft size={16} /> Quay lại danh sách</Link>
 
-      {submitError && (
-        <ErrorToast errorInfo={submitError} onClose={clearSubmitError} />
-      )}
+      {submitError && <ErrorToast errorInfo={submitError} onClose={clearSubmitError} />}
 
       <form className="form-fill-card" onSubmit={handleSubmit}>
         <header className="form-fill-header">
           <h1 className="form-fill-title">{form.title}</h1>
-          <p className="form-fill-desc">
-            {form.description || 'Vui lòng điền đầy đủ các thông tin dưới đây.'}
-          </p>
+          <p className="form-fill-desc">{form.description || 'Vui lòng điền đầy đủ các thông tin dưới đây.'}</p>
         </header>
 
         <div className="form-fields-list">
           {form.fields && form.fields.length > 0 ? (
             form.fields.sort((a, b) => a.display_order - b.display_order).map((field) => (
-              <div
-                key={field.id}
-                id={`field-${field.id}`}
-                className={`field-item ${isFieldError(field) ? 'field-item--error' : ''}`}
-              >
-                <label className="field-label">
-                  {field.label}
-                  {field.is_required && <span className="field-required">*</span>}
-                </label>
+              <div key={field.id} id={`field-${field.id}`} className={`field-item ${isFieldError(field) ? 'field-item--error' : ''}`}>
+                <label className="field-label">{field.label}{field.is_required && <span className="field-required">*</span>}</label>
 
                 {field.field_type === 'select' ? (
-                  <select
-                    className={`form-input ${isFieldError(field) ? 'form-input--error' : ''}`}
-                    required={field.is_required}
-                    value={answers[field.id] || ''}
-                    onChange={(e) => handleInputChange(field.id, e.target.value)}
-                  >
+                  <select className={`form-input ${isFieldError(field) ? 'form-input--error' : ''}`} required={field.is_required} value={answers[field.id] || ''} onChange={(e) => handleInputChange(field.id, e.target.value)}>
                     <option value="">-- Chọn một tùy chọn --</option>
-                    {field.options && field.options.map((opt, i) => (
-                      <option key={i} value={opt}>{opt}</option>
-                    ))}
+                    {field.options && field.options.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
                   </select>
                 ) : field.field_type === 'multi_select' ? (
                   <div className={`multi-select-wrapper ${isFieldError(field) ? 'form-input--error' : ''}`}>
@@ -331,12 +258,7 @@ const FormDetail = () => {
                       const isChecked = (answers[field.id] || []).includes(opt);
                       return (
                         <label key={i} className="checkbox-label">
-                          <input
-                            type="checkbox"
-                            value={opt}
-                            checked={isChecked}
-                            onChange={(e) => handleMultiSelectChange(field.id, opt, e.target.checked)}
-                          />
+                          <input type="checkbox" value={opt} checked={isChecked} onChange={(e) => handleMultiSelectChange(field.id, opt, e.target.checked)} />
                           <span>{opt}</span>
                         </label>
                       );
@@ -346,8 +268,10 @@ const FormDetail = () => {
                   <input
                     type="file"
                     className={`form-input ${isFieldError(field) ? 'form-input--error' : ''}`}
-                    required={field.is_required}
-                    onChange={(e) => handleInputChange(field.id, e.target.files[0]?.name)}
+                    // Nếu đã upload thành công trc đó (value là string path) thì ko bắt required nữa
+                    required={field.is_required && typeof answers[field.id] !== 'string'}
+                    accept=".pdf" // Ép định dạng ở UI
+                    onChange={(e) => handleInputChange(field.id, e.target.files[0])}
                   />
                 ) : (
                   <input
@@ -362,8 +286,7 @@ const FormDetail = () => {
 
                 {isFieldError(field) && submitError && (
                   <div className="field-error-hint">
-                    <Info size={13} />
-                    <span>{submitError.messages[0]}</span>
+                    <Info size={13} /><span>{submitError.messages[0]}</span>
                   </div>
                 )}
               </div>
@@ -374,22 +297,8 @@ const FormDetail = () => {
         </div>
 
         <footer className="form-fill-footer">
-          <button
-            type="submit"
-            className="submit-btn"
-            disabled={submitting}
-          >
-            {submitting ? (
-              <>
-                <Loader2 className="animate-spin" size={18} style={{ marginRight: 8 }} />
-                Đang gửi...
-              </>
-            ) : (
-              <>
-                <Send size={18} style={{ marginRight: 8 }} />
-                Gửi biểu mẫu
-              </>
-            )}
+          <button type="submit" className="submit-btn" disabled={submitting}>
+            {submitting ? <><Loader2 className="animate-spin" size={18} style={{ marginRight: 8 }} /> Đang xử lý...</> : <><Send size={18} style={{ marginRight: 8 }} /> Gửi biểu mẫu</>}
           </button>
         </footer>
       </form>

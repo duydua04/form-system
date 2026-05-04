@@ -17,17 +17,18 @@ const processQueue = (error, token = null) => {
 export const apiCall = async (endpoint, options = {}) => {
   const url = `${BASE_URL}${endpoint}`;
   
-  const defaultHeaders = {
-    'Content-Type': 'application/json',
-  };
+  // KIỂM TRA: Nếu body là FormData (để up file) thì KHÔNG set Content-Type là json
+  const isFormData = options.body instanceof FormData;
+  const headers = { ...options.headers };
+
+  if (!isFormData && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   let response = await fetch(url, {
     ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers,
-    },
-    credentials: 'include', 
+    headers, // Dùng headers đã được xử lý
+    credentials: 'include',
   });
 
   if (response.status === 401 && !endpoint.includes('/api/auth/refresh') && !endpoint.includes('/api/auth/login')) {
@@ -46,7 +47,7 @@ export const apiCall = async (endpoint, options = {}) => {
     try {
       const refreshRes = await fetch(`${BASE_URL}/api/auth/refresh`, {
         method: 'POST',
-        headers: defaultHeaders,
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
       });
 
@@ -54,10 +55,7 @@ export const apiCall = async (endpoint, options = {}) => {
         processQueue(null);
         response = await fetch(url, {
           ...options,
-          headers: {
-            ...defaultHeaders,
-            ...options.headers,
-          },
+          headers,
           credentials: 'include',
         });
       } else {
