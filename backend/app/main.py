@@ -8,7 +8,7 @@ from .configs.settings import settings
 
 #IMPORT COMMON ROUTER
 from .routes.common.auth_route import auth_router
-
+from .routes.common.upload_route import upload_router
 
 #IMPORT ADMIN ROUTER
 from .routes.admin.admin_form_route import admin_form_router
@@ -33,6 +33,7 @@ setup_exception_handlers(app)
 
 #CALL COMMON API
 app.include_router(auth_router)
+app.include_router(upload_router)
 
 #CALL ADMIN API
 app.include_router(admin_form_router)

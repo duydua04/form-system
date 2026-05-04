@@ -148,18 +148,34 @@ def validate_multi_select(field, value: str):
 @SubmissionValidator.register(FieldTypeEnum.file)
 def validate_file_submission(field, value: str):
     """
-    Validates that the uploaded based on the allowed extensions defined
+    Validates that the file path returned from MinIO is secure and matches allowed extensions.
     """
+    if value.startswith(("http://", "https://", "/", "\\", ".")):
+        raise AppException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            error_code="INVALID_FILE_PATH",
+            message=f"Đường dẫn file cho trường '{field.label}' chứa ký tự không hợp lệ."
+        )
+
+    expected_prefix = "form-submissions/uploads/"
+    if not value.startswith(expected_prefix):
+        raise AppException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            error_code="INVALID_FILE_SOURCE",
+            message=f"File cho trường '{field.label}' không hợp lệ hoặc chưa được tải lên hệ thống đúng cách."
+        )
+
+    _, ext = os.path.splitext(value)
+    ext = ext.lower()
+
     options = field.options or {}
+    allowed_exts = options.get("allowed_extensions") if isinstance(options, dict) else None
+    if not allowed_exts:
+        allowed_exts = [".pdf"]
 
-    allowed_exts = options.get("allowed_extensions")
-    if allowed_exts:
-        _, ext = os.path.splitext(value)
-        ext = ext.lower()
-
-        if ext not in allowed_exts:
-            raise AppException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                error_code="VALIDATION_ERROR",
-                message=f"Field '{field.label}' only accepts the following formats: {', '.join(allowed_exts)}."
-            )
+    if ext not in allowed_exts:
+        raise AppException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            error_code="INVALID_FILE_EXTENSION",
+            message=f"Trường '{field.label}' chỉ chấp nhận các định dạng: {', '.join(allowed_exts)}."
+        )
