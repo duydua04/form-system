@@ -1,6 +1,6 @@
 import io
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from minio import Minio
 from minio.error import S3Error
 from ...configs.minio_config import minio_settings
@@ -49,5 +49,26 @@ class MinioHandler:
         except S3Error as e:
             raise Exception(f"S3Error: {e}")
 
+    def get_presigned_url(self, file_path: str, expires_in_hours: int = 1) -> str:
+        """
+        Tạo URL tạm thời để xem/tải file trực tiếp từ MinIO.
+        file_path có dạng: form-submissions/uploads/...
+        """
+        try:
+            # Tách bucket_name và object_name từ đường dẫn thô
+            parts = file_path.split("/", 1)
+            if len(parts) != 2:
+                raise ValueError("Đường dẫn file không hợp lệ")
+
+            bucket_name, object_name = parts
+
+            url = self.client.presigned_get_object(
+                bucket_name=bucket_name,
+                object_name=object_name,
+                expires=timedelta(hours=expires_in_hours)
+            )
+            return url
+        except Exception as e:
+            raise Exception(f"Lỗi khi tạo link truy cập: {e}")
 
 minio_handler = MinioHandler()

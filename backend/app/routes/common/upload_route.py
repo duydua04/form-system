@@ -1,6 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, Depends, status
+from fastapi import APIRouter, UploadFile, File, Depends, status, Query
 from ...controllers.common.upload_controller import UploadController, get_upload_controller
 from ...utils.error_helper.exceptions import AppException
+from ...utils.storage.minio_utils import minio_handler
 
 # 5MB giới hạn
 MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -41,3 +42,28 @@ async def upload_pdf_file(
         file_data=file_data,
         content_type=file.content_type
     )
+
+@upload_router.get(
+    "/api/files/presigned-url",
+    status_code=status.HTTP_200_OK
+)
+async def get_file_access_url(path: str = Query(..., description="Đường dẫn file trên MinIO")):
+    """
+    API lấy link truy cập file tạm thời (Presigned URL).
+    Phục vụ cho tính năng Xem/Tải file trên giao diện.
+    """
+    try:
+        url = minio_handler.get_presigned_url(path)
+        return {
+            "success": True,
+            "data": {
+                "url": url
+            }
+        }
+    except Exception as e:
+        raise AppException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            error_code="PRESIGNED_URL_ERROR",
+            message="Không thể tạo link truy cập file lúc này.",
+            details=[{"issue": str(e)}]
+        )
