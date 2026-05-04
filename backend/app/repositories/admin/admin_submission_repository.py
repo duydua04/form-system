@@ -39,3 +39,21 @@ class AdminSubmissionRepository:
 
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
+
+    async def get_all_submissions(self, offset: int, limit: int) -> Tuple[List[Submission], int]:
+        """Lấy TẤT CẢ bài nộp trên toàn hệ thống (Global Log)"""
+        query = select(Submission).options(
+            selectinload(Submission.user),
+            selectinload(Submission.form)  # Join thêm Form để lấy title
+        )
+
+        total_query = select(func.count()).select_from(Submission)
+        total = (await self.db.execute(total_query)).scalar() or 0
+
+        # Sắp xếp mới nhất lên đầu
+        query = query.order_by(Submission.submitted_at.desc()).offset(offset).limit(limit)
+
+        result = await self.db.execute(query)
+        submissions = list(result.scalars().all())
+
+        return submissions, total

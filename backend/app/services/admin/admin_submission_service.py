@@ -70,6 +70,30 @@ class AdminSubmissionService:
             "answers": answers,
         }
 
+    async def get_all_submissions(self, page: int, limit: int) -> PaginatedResponse:
+        offset = (page - 1) * limit
+        submissions, total = await self.repo.get_all_submissions(offset, limit)
+
+        items = []
+        for sub in submissions:
+            items.append({
+                "id": sub.id,
+                "form_id": sub.form_id,
+                "form_title": sub.form.title if sub.form else "Biểu mẫu đã xoá",
+                "user_id": sub.user_id,
+                "username": sub.user.username if sub.user else "Unknown",
+                "email": sub.user.email if sub.user else "Unknown",
+                "submitted_at": sub.submitted_at,
+            })
+
+        return PaginatedResponse(
+            items=items,
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=math.ceil(total / limit) if total > 0 else 0
+        )
+
 
 def get_admin_submission_service(db: AsyncSession = Depends(get_db)) -> AdminSubmissionService:
     return AdminSubmissionService(AdminSubmissionRepository(db))

@@ -11,5 +11,8 @@ class AdminSubmissionController:
     async def get_submission_detail(self, submission_id: int):
         return await self.service.get_submission_detail(submission_id)
 
+    async def get_all_submissions(self, page: int, limit: int):
+        return await self.service.get_all_submissions(page, limit)
+
 def get_admin_submission_controller(service: AdminSubmissionService = Depends(get_admin_submission_service)) -> AdminSubmissionController:
     return AdminSubmissionController(service)

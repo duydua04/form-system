@@ -25,3 +25,12 @@ class SubmissionAdminDetailResponse(BaseModel):
     email: str
     submitted_at: datetime
     answers: List[AdminSubmissionAnswerResponse]
+
+class SubmissionGlobalItemResponse(BaseModel):
+    id: int
+    form_id: int
+    form_title: str
+    user_id: int
+    username: str
+    email: str
+    submitted_at: datetime
