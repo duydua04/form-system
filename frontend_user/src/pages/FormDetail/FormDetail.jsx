@@ -25,7 +25,6 @@ const parseBackendError = (error) => {
   const code = error.code || '';
   const details = error.details || null;
 
-  // Nếu có details array (validation 422 từ Pydantic)
   if (details && Array.isArray(details) && details.length > 0) {
     return {
       type: 'validation',
@@ -35,11 +34,9 @@ const parseBackendError = (error) => {
     };
   }
 
-  // Trích xuất tên field từ pattern "Field 'xxx'" hoặc "field 'xxx'"
   const fieldMatch = msg.match(/[Ff]ield\s+'([^']+)'/);
   const fieldName = fieldMatch ? fieldMatch[1] : null;
 
-  // Nếu là VALIDATION_ERROR từ submission_validator
   if (code === 'VALIDATION_ERROR' && fieldName) {
     for (const rule of ERROR_MAP) {
       const match = msg.match(rule.pattern);
@@ -52,7 +49,6 @@ const parseBackendError = (error) => {
         };
       }
     }
-    // Fallback cho VALIDATION_ERROR chưa map
     return {
       type: 'validation',
       title: 'Lỗi nhập liệu',
@@ -61,7 +57,6 @@ const parseBackendError = (error) => {
     };
   }
 
-  // Lỗi nghiệp vụ khác (FORM_NOT_FOUND, etc.)
   if (code === 'FORM_NOT_FOUND') {
     return {
       type: 'error',
@@ -71,7 +66,6 @@ const parseBackendError = (error) => {
     };
   }
 
-  // Lỗi server / unknown
   return {
     type: 'error',
     title: 'Đã xảy ra lỗi',
@@ -85,7 +79,6 @@ const ErrorToast = ({ errorInfo, onClose }) => {
   const timerRef = useRef(null);
 
   useEffect(() => {
-    // Auto-dismiss sau 8 giây
     timerRef.current = setTimeout(() => {
       onClose();
     }, 8000);
@@ -126,11 +119,11 @@ const FormDetail = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState(null);
-  const [submitError, setSubmitError] = useState(null); // parsed error info
-  const [errorFieldName, setErrorFieldName] = useState(null); // field bị lỗi
+  const [submitError, setSubmitError] = useState(null);
+  const [errorFieldName, setErrorFieldName] = useState(null);
   const [submitted, setSubmitted] = useState(false);
-  
-  // State for answers: { field_id: value }
+
+  // State for answers: { field_id: value (string or array) }
   const [answers, setAnswers] = useState({});
 
   useEffect(() => {
@@ -142,12 +135,13 @@ const FormDetail = () => {
       setLoading(true);
       const response = await apiCall(`/api/user/forms/${id}`);
       setForm(response);
-      
+
       // Initialize answers state
       const initialAnswers = {};
       if (response && response.fields) {
         response.fields.forEach(field => {
-          initialAnswers[field.id] = '';
+          // Nếu field type là multi_select, khởi tạo giá trị mảng rỗng
+          initialAnswers[field.id] = field.field_type === 'multi_select' ? [] : '';
         });
       }
       setAnswers(initialAnswers);
@@ -163,7 +157,29 @@ const FormDetail = () => {
       ...prev,
       [fieldId]: value
     }));
-    // Xóa lỗi khi user bắt đầu sửa
+    if (submitError) {
+      setSubmitError(null);
+      setErrorFieldName(null);
+    }
+  };
+
+  const handleMultiSelectChange = (fieldId, optionValue, isChecked) => {
+    setAnswers(prev => {
+      const currentSelected = prev[fieldId] || [];
+      let newSelected;
+
+      if (isChecked) {
+        newSelected = [...currentSelected, optionValue];
+      } else {
+        newSelected = currentSelected.filter(val => val !== optionValue);
+      }
+
+      return {
+        ...prev,
+        [fieldId]: newSelected
+      };
+    });
+
     if (submitError) {
       setSubmitError(null);
       setErrorFieldName(null);
@@ -179,10 +195,19 @@ const FormDetail = () => {
     try {
       // Map answers to the format expected by backend
       const payload = {
-        answers: Object.keys(answers).map(fieldId => ({
-          field_id: parseInt(fieldId),
-          value: answers[fieldId] ? String(answers[fieldId]) : null
-        }))
+        answers: Object.keys(answers).map(fieldId => {
+          let value = answers[fieldId];
+
+          // Chuyển mảng từ multi_select thành chuỗi phân cách bởi dấu phẩy
+          if (Array.isArray(value)) {
+            value = value.length > 0 ? value.join(', ') : null;
+          }
+
+          return {
+            field_id: parseInt(fieldId),
+            value: value ? String(value) : null
+          };
+        })
       };
 
       await apiCall(`/api/forms/${id}/submit`, {
@@ -196,7 +221,6 @@ const FormDetail = () => {
       setSubmitError(parsed);
       setErrorFieldName(parsed.fieldName);
 
-      // Scroll đến field lỗi nếu có
       if (parsed.fieldName && form?.fields) {
         const errorField = form.fields.find(f => f.label === parsed.fieldName);
         if (errorField) {
@@ -216,7 +240,6 @@ const FormDetail = () => {
     setErrorFieldName(null);
   };
 
-  /* Check if a field is the error field */
   const isFieldError = (field) => {
     return errorFieldName && field.label === errorFieldName;
   };
@@ -265,7 +288,6 @@ const FormDetail = () => {
         Quay lại danh sách
       </Link>
 
-      {/* Error Toast */}
       {submitError && (
         <ErrorToast errorInfo={submitError} onClose={clearSubmitError} />
       )}
@@ -303,6 +325,23 @@ const FormDetail = () => {
                       <option key={i} value={opt}>{opt}</option>
                     ))}
                   </select>
+                ) : field.field_type === 'multi_select' ? (
+                  <div className={`multi-select-wrapper ${isFieldError(field) ? 'form-input--error' : ''}`}>
+                    {field.options && field.options.map((opt, i) => {
+                      const isChecked = (answers[field.id] || []).includes(opt);
+                      return (
+                        <label key={i} className="checkbox-label">
+                          <input
+                            type="checkbox"
+                            value={opt}
+                            checked={isChecked}
+                            onChange={(e) => handleMultiSelectChange(field.id, opt, e.target.checked)}
+                          />
+                          <span>{opt}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 ) : field.field_type === 'file' ? (
                   <input
                     type="file"
@@ -321,7 +360,6 @@ const FormDetail = () => {
                   />
                 )}
 
-                {/* Inline error hint */}
                 {isFieldError(field) && submitError && (
                   <div className="field-error-hint">
                     <Info size={13} />
@@ -336,9 +374,9 @@ const FormDetail = () => {
         </div>
 
         <footer className="form-fill-footer">
-          <button 
-            type="submit" 
-            className="submit-btn" 
+          <button
+            type="submit"
+            className="submit-btn"
             disabled={submitting}
           >
             {submitting ? (

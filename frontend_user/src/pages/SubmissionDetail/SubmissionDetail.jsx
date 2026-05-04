@@ -13,18 +13,20 @@ import {
   Palette,
   List,
   Paperclip,
+  CheckSquare
 } from 'lucide-react';
 import { apiCall } from '../../services/api';
 import './SubmissionDetail.css';
 
 /* Map field_type → icon + label tiếng Việt */
 const FIELD_TYPE_MAP = {
-  text:   { icon: Type,          label: 'Văn bản' },
-  number: { icon: HashIcon,      label: 'Số' },
-  date:   { icon: CalendarDays,  label: 'Ngày' },
-  color:  { icon: Palette,       label: 'Màu sắc' },
-  select: { icon: List,          label: 'Lựa chọn' },
-  file:   { icon: Paperclip,     label: 'Tệp đính kèm' },
+  text:         { icon: Type,          label: 'Văn bản' },
+  number:       { icon: HashIcon,      label: 'Số' },
+  date:         { icon: CalendarDays,  label: 'Ngày' },
+  color:        { icon: Palette,       label: 'Màu sắc' },
+  select:       { icon: List,          label: 'Lựa chọn' },
+  multi_select: { icon: CheckSquare,   label: 'Nhiều lựa chọn' },
+  file:         { icon: Paperclip,     label: 'Tệp đính kèm' },
 };
 
 const formatDateTime = (isoString) => {
