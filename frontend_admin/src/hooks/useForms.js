@@ -6,7 +6,6 @@ export const useForms = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Thêm state quản lý phân trang
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 6,
@@ -14,15 +13,14 @@ export const useForms = () => {
     total: 0
   });
 
-  // Nhận tham số page, mặc định là 1
-  const fetchForms = useCallback(async (pageToFetch = 1) => {
+  // 'all' | 'today' | 'this_week'
+  const [filter, setFilter] = useState('all');
+
+  const fetchForms = useCallback(async (pageToFetch = 1, activeFilter = filter) => {
     try {
       setLoading(true);
-      // Gọi API với page động và limit 6
-      const data = await formService.getForms(pageToFetch, 6);
+      const data = await formService.getForms(pageToFetch, 6, activeFilter);
       setForms(data.items || []);
-
-      // Cập nhật thông tin phân trang từ response API
       setPagination({
         page: data.page,
         limit: data.limit,
@@ -35,13 +33,18 @@ export const useForms = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filter]);
+
+  // Đổi filter → reset về trang 1 và fetch lại
+  const changeFilter = useCallback((newFilter) => {
+    setFilter(newFilter);
+    fetchForms(1, newFilter);
+  }, [fetchForms]);
 
   const deleteForm = async (id) => {
     try {
       await formService.deleteForm(id);
-      // Gọi lại trang hiện tại sau khi xóa thành công
-      await fetchForms(pagination.page);
+      await fetchForms(pagination.page, filter);
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message || 'Xóa form thất bại' };
@@ -49,15 +52,17 @@ export const useForms = () => {
   };
 
   useEffect(() => {
-    fetchForms(1);
-  }, [fetchForms]);
+    fetchForms(1, 'all');
+  }, []);                   // chỉ chạy lần đầu mount
 
   return {
     forms,
     loading,
     error,
-    pagination, // Trả ra thông tin phân trang
+    pagination,
+    filter,
     fetchForms,
-    deleteForm
+    changeFilter,
+    deleteForm,
   };
 };

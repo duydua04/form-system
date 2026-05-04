@@ -1,8 +1,14 @@
 import { apiCall } from './api';
 
 export const formService = {
-  getForms: async (page = 1, limit = 10) => {
-    return await apiCall(`/api/forms?page=${page}&limit=${limit}`, {
+  // filter: 'all' | 'today' | 'this_week'
+  getForms: async (page = 1, limit = 10, filter = 'all') => {
+    const params = new URLSearchParams({
+      page,
+      limit,
+      ...(filter !== 'all' && { time_filter: filter }),
+    });
+    return await apiCall(`/api/forms?${params.toString()}`, {
       method: 'GET',
     });
   },

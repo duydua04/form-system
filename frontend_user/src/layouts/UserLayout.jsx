@@ -53,8 +53,8 @@ const UserLayout = () => {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <span>TÊN BRAND</span>
-          <small>SW Portal v2.0</small>
+          <span>TOPCV FORM</span>
+          <small>For SW Employees</small>
         </div>
 
         <div className="nav-section">

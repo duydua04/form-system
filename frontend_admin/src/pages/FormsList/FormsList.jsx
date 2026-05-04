@@ -1,15 +1,24 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, CalendarDays, Clock, List } from 'lucide-react';
 import ConfirmModal from '../../components/ConfirmModal';
+import Toast from '../../components/Toast';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
+import { useToast } from '../../hooks/useToast';
 import { useForms } from '../../hooks/useForms';
 import './FormsList.css';
 
+const FILTER_OPTIONS = [
+  { value: 'all',       label: 'Tất cả',     icon: List },
+  { value: 'today',     label: 'Hôm nay',    icon: Clock },
+  { value: 'this_week', label: 'Tuần này',   icon: CalendarDays },
+];
+
 const FormsList = () => {
   const navigate = useNavigate();
-  const { forms, loading, error, pagination, fetchForms, deleteForm } = useForms();
+  const { forms, loading, error, pagination, filter, fetchForms, changeFilter, deleteForm } = useForms();
   const { confirmModal, openConfirm } = useConfirmModal();
+  const { toast, showToast, closeToast } = useToast();
 
   const handleDelete = (id) => {
     openConfirm({
@@ -20,7 +29,7 @@ const FormsList = () => {
       onConfirm: async () => {
         const result = await deleteForm(id);
         if (!result.success) {
-          alert(result.error);
+          showToast(result.error, 'error');
         }
       }
     });
@@ -28,26 +37,21 @@ const FormsList = () => {
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
-      fetchForms(newPage);
+      fetchForms(newPage, filter);
     }
   };
 
   const getPageNumbers = () => {
     const { page, totalPages } = pagination;
     const pages = [];
-
     if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else if (page <= 3) {
+      pages.push(1, 2, 3, 4, '...', totalPages);
+    } else if (page >= totalPages - 2) {
+      pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
     } else {
-      if (page <= 3) {
-        pages.push(1, 2, 3, 4, '...', totalPages);
-      } else if (page >= totalPages - 2) {
-        pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
-      } else {
-        pages.push(1, '...', page - 1, page, page + 1, '...', totalPages);
-      }
+      pages.push(1, '...', page - 1, page, page + 1, '...', totalPages);
     }
     return pages;
   };
@@ -72,9 +76,48 @@ const FormsList = () => {
       )}
 
       <div className="card">
-        <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '13px', fontWeight: 500 }}>Tất cả biểu mẫu</span>
-          <input type="text" placeholder="Tìm kiếm form..." style={{ width: '200px', padding: '6px 10px', fontSize: '12px', border: '1px solid var(--border-color)', borderRadius: '4px' }} />
+        {/* Toolbar: filter tabs */}
+        <div style={{
+          padding: '12px 16px',
+          borderBottom: '1px solid var(--border-color)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          flexWrap: 'wrap',
+        }}>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {FILTER_OPTIONS.map(({ value, label, icon: Icon }) => {
+              const isActive = filter === value;
+              return (
+                <button
+                  key={value}
+                  onClick={() => changeFilter(value)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    fontSize: '13px',
+                    fontWeight: isActive ? 600 : 400,
+                    borderRadius: '6px',
+                    border: isActive ? '1.5px solid var(--primary-color)' : '1.5px solid var(--border-color)',
+                    backgroundColor: isActive ? 'var(--primary-color)' : 'var(--white)',
+                    color: isActive ? '#fff' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <Icon style={{ width: 14, height: 14 }} />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          <span style={{ fontSize: '13px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+            {loading ? 'Đang tải...' : `${pagination.total} kết quả`}
+          </span>
         </div>
 
         {loading ? (
@@ -94,7 +137,13 @@ const FormsList = () => {
                 <tbody>
                   {forms.length === 0 ? (
                     <tr>
-                      <td colSpan="4" style={{ textAlign: 'center', padding: '30px' }}>Chưa có form nào</td>
+                      <td colSpan="4" style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)' }}>
+                        {filter === 'today'
+                          ? 'Không có form nào được tạo hôm nay'
+                          : filter === 'this_week'
+                          ? 'Không có form nào được tạo trong tuần này'
+                          : 'Chưa có form nào'}
+                      </td>
                     </tr>
                   ) : (
                     forms.map((form) => (
@@ -121,7 +170,7 @@ const FormsList = () => {
                               style={{ padding: '4px 8px' }}
                               onClick={() => navigate(`/forms/${form.id}/edit`)}
                             >
-                              <Edit className="icon" style={{width: '12px', height: '12px', marginRight: '4px'}} />
+                              <Edit className="icon" style={{ width: '12px', height: '12px', marginRight: '4px' }} />
                               Sửa
                             </button>
                             <button
@@ -129,7 +178,7 @@ const FormsList = () => {
                               style={{ padding: '4px 8px', color: 'var(--danger)', borderColor: '#fca5a5' }}
                               onClick={() => handleDelete(form.id)}
                             >
-                              <Trash2 className="icon" style={{width: '12px', height: '12px', marginRight: '4px'}} />
+                              <Trash2 className="icon" style={{ width: '12px', height: '12px', marginRight: '4px' }} />
                               Xóa
                             </button>
                           </div>
@@ -141,11 +190,10 @@ const FormsList = () => {
               </table>
             </div>
 
-            {/* UI Phân trang */}
             {pagination.totalPages > 1 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderTop: '1px solid var(--border-color)' }}>
                 <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                  Hiển thị {(pagination.page - 1) * pagination.limit + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} trong số {pagination.total} kết quả
+                  Hiển thị {(pagination.page - 1) * pagination.limit + 1}–{Math.min(pagination.page * pagination.limit, pagination.total)} trong số {pagination.total} kết quả
                 </span>
 
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -162,7 +210,6 @@ const FormsList = () => {
                     if (item === '...') {
                       return <span key={index} style={{ padding: '0 4px', color: 'var(--text-secondary)' }}>...</span>;
                     }
-
                     const isActive = pagination.page === item;
                     return (
                       <button
@@ -209,6 +256,8 @@ const FormsList = () => {
         confirmText={confirmModal.confirmText}
         cancelText={confirmModal.cancelText}
       />
+
+      <Toast toast={toast} onClose={closeToast} />
     </div>
   );
 };

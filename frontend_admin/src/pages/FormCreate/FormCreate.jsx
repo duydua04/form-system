@@ -3,8 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Save, X, ChevronRight, Plus, GripVertical, Trash2, Edit2, Settings, Type, Hash, Calendar, Palette, List as ListIcon, FileUp, ListChecks } from 'lucide-react';
 import { formService } from '../../services/form.service';
 import ConfirmModal from '../../components/ConfirmModal';
+import Toast from '../../components/Toast';
 import { useConfirmModal } from '../../hooks/useConfirmModal';
 import { useFormDetail } from '../../hooks/useFormDetail';
+import { useToast } from '../../hooks/useToast';
 import './FormCreate.css';
 
 const FieldTypeIcons = {
@@ -62,6 +64,9 @@ const FormCreate = () => {
   // Confirm Modal Hook
   const { confirmModal, openConfirm } = useConfirmModal();
 
+  // Toast Hook
+  const { toast, showToast, closeToast } = useToast();
+
   const handleFormChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (name === 'status_toggle') {
@@ -78,7 +83,7 @@ const FormCreate = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       if (!formData.title) {
         setError('Tên form là bắt buộc');
         return;
@@ -86,11 +91,11 @@ const FormCreate = () => {
 
       if (isEditMode) {
         await formService.updateForm(id, formData);
-        alert('Cập nhật form thành công!');
+        showToast('Cập nhật form thành công!', 'success');
         fetchFormDetail();
       } else {
         const newForm = await formService.createForm(formData);
-        alert('Tạo form thành công! Bây giờ bạn có thể thêm các trường (fields).');
+        showToast('Tạo form thành công! Bây giờ bạn có thể thêm các trường (fields).', 'success');
         navigate(`/forms/${newForm.id}/edit`);
       }
     } catch (err) {
@@ -248,11 +253,11 @@ const FormCreate = () => {
     newFields.splice(dragOverItemIndex, 0, draggedItem);
 
     setFields(newFields);
-    
+
     const ordered_field_ids = newFields.map(f => f.id);
     setDraggedItemIndex(null);
     setDragOverItemIndex(null);
-    
+
     try {
       await formService.reorderFields(id, ordered_field_ids);
       fetchFormDetail();
@@ -292,7 +297,7 @@ const FormCreate = () => {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        
+
         <div className="card" style={{ overflow: 'hidden' }}>
           <div style={{ padding: '16px 24px', backgroundColor: '#f8fafc', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -316,7 +321,7 @@ const FormCreate = () => {
                 style={{ fontSize: '15px', padding: '10px 14px' }}
               />
             </div>
-            
+
             <div className="form-group full">
               <label>Mô tả / Hướng dẫn điền form</label>
               <textarea
@@ -339,13 +344,13 @@ const FormCreate = () => {
                 onChange={handleFormChange}
               />
             </div>
-            
+
             <div className="form-group">
               <label>Trạng thái hoạt động</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                  <input 
-                    type="radio" 
+                  <input
+                    type="radio"
                     name="status"
                     value="active"
                     checked={formData.status === 'active'}
@@ -355,8 +360,8 @@ const FormCreate = () => {
                   Công khai (Active)
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', marginLeft: '16px' }}>
-                  <input 
-                    type="radio" 
+                  <input
+                    type="radio"
                     name="status"
                     value="draft"
                     checked={formData.status === 'draft'}
@@ -383,7 +388,7 @@ const FormCreate = () => {
                 Thêm trường mới
               </button>
             </div>
-            
+
             <div style={{ padding: '24px' }}>
               {fields.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px 20px', border: '2px dashed var(--border-color)', borderRadius: '8px', color: 'var(--text-secondary)' }}>
@@ -397,21 +402,21 @@ const FormCreate = () => {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {fields.map((field, index) => (
-                    <div 
-                      key={field.id} 
+                    <div
+                      key={field.id}
                       draggable
                       onDragStart={(e) => onDragStart(e, index)}
                       onDragEnter={(e) => onDragEnter(e, index)}
                       onDragEnd={onDragEnd}
                       onDragOver={(e) => e.preventDefault()}
-                      style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        padding: '12px 16px', 
-                        border: dragOverItemIndex === index ? '2px dashed var(--primary-color)' : '1px solid var(--border-color)', 
-                        borderRadius: '6px', 
-                        backgroundColor: draggedItemIndex === index ? '#f8fafc' : 'var(--white)', 
-                        transition: 'all 0.2s', 
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '12px 16px',
+                        border: dragOverItemIndex === index ? '2px dashed var(--primary-color)' : '1px solid var(--border-color)',
+                        borderRadius: '6px',
+                        backgroundColor: draggedItemIndex === index ? '#f8fafc' : 'var(--white)',
+                        transition: 'all 0.2s',
                         boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
                         cursor: 'grab'
                       }}
@@ -419,7 +424,7 @@ const FormCreate = () => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginRight: '16px', color: '#cbd5e1' }}>
                          <GripVertical className="icon" style={{ width: '18px', height: '18px' }} />
                       </div>
-                      
+
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                           <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '15px' }}>{field.label}</span>
@@ -435,7 +440,7 @@ const FormCreate = () => {
                           )}
                         </div>
                       </div>
-                      
+
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button className="btn btn-secondary btn-sm" onClick={() => openFieldModal(field)}>
                           <Edit2 className="icon" style={{ width: '14px', height: '14px' }} />
@@ -467,7 +472,7 @@ const FormCreate = () => {
                 <X className="icon" />
               </button>
             </div>
-            
+
             <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="form-group">
                 <label>Tên trường (Label) <span className="required-star">*</span></label>
@@ -483,9 +488,9 @@ const FormCreate = () => {
               <div className="form-grid" style={{ padding: 0, gap: '16px' }}>
                 <div className="form-group">
                   <label>Loại dữ liệu (Type)</label>
-                  <select 
-                    name="field_type" 
-                    value={fieldData.field_type} 
+                  <select
+                    name="field_type"
+                    value={fieldData.field_type}
                     onChange={handleFieldChange}
                     style={{ padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '14px', outline: 'none' }}
                   >
@@ -494,7 +499,7 @@ const FormCreate = () => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="form-group">
                   <label>Thứ tự hiển thị</label>
                   <input
@@ -589,8 +594,8 @@ const FormCreate = () => {
           </div>
         </div>
       )}
-      
-      <ConfirmModal 
+
+      <ConfirmModal
         isOpen={confirmModal.isOpen}
         title={confirmModal.title}
         message={confirmModal.message}
@@ -599,6 +604,8 @@ const FormCreate = () => {
         confirmText={confirmModal.confirmText}
         cancelText={confirmModal.cancelText}
       />
+
+      <Toast toast={toast} onClose={closeToast} />
     </div>
   );
 };
