@@ -151,7 +151,6 @@ const SubmissionDetail = () => {
                     </div>
                     <div className="sd-answer-label-wrap">
                       <span className="sd-answer-label">{ans.field_label}</span>
-                      <span className="sd-field-type-badge">{ftMap.label}</span>
                     </div>
                   </div>
 

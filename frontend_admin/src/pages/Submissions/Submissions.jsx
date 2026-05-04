@@ -141,7 +141,6 @@ const DetailView = ({ submission, loading, error, onBack }) => (
                     </div>
                     <div className="answer-field-info">
                       <div className="answer-field-label">{ans.field_label}</div>
-                      <div className="answer-field-type" style={{ color: meta.color }}>{meta.label}</div>
                     </div>
                   </div>
 
