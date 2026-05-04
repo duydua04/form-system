@@ -13,7 +13,9 @@ import {
   Palette,
   List,
   Paperclip,
-  CheckSquare
+  CheckSquare,
+  Eye,
+  Download
 } from 'lucide-react';
 import { apiCall } from '../../services/api';
 import './SubmissionDetail.css';
@@ -43,6 +45,9 @@ const SubmissionDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // State quản lý hiệu ứng loading xoay tròn cho từng nút file
+  const [loadingFileId, setLoadingFileId] = useState(null);
+
   useEffect(() => {
     fetchDetail();
   }, [id]);
@@ -57,6 +62,34 @@ const SubmissionDetail = () => {
       setError(err.message || 'Không thể tải chi tiết bài nộp.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAccessFile = async (filePath, action, fieldId) => {
+    try {
+      setLoadingFileId(fieldId);
+
+      // 1. Gọi API xin link Presigned URL
+      const res = await apiCall(`/api/files/presigned-url?path=${encodeURIComponent(filePath)}`);
+      const fileUrl = res.data.url;
+
+      // 2. Thực hiện hành động
+      if (action === 'view') {
+        window.open(fileUrl, '_blank');
+      } else if (action === 'download') {
+        const a = document.createElement('a');
+        a.href = fileUrl;
+        const fileName = filePath.split('/').pop() || 'downloaded_file.pdf';
+        a.download = fileName;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    } catch (err) {
+      alert("Không thể truy cập file lúc này. File có thể đã bị xóa hoặc hết hạn bảo mật.");
+    } finally {
+      setLoadingFileId(null);
     }
   };
 
@@ -163,6 +196,35 @@ const SubmissionDetail = () => {
                         />
                         <span className="sd-answer-value">{ans.value}</span>
                       </div>
+                    ) : ans.field_type === 'file' && ans.value ? (
+
+                      /* Giao diện hiển thị File chuyên biệt */
+                      <div className="sd-file-value">
+                        <span className="sd-file-name" title={ans.value}>
+                          {ans.value.split('/').pop()}
+                        </span>
+                        <div className="sd-file-actions">
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm sd-file-btn"
+                            onClick={() => handleAccessFile(ans.value, 'view', ans.id)}
+                            disabled={loadingFileId === ans.id}
+                          >
+                            {loadingFileId === ans.id ? <Loader2 size={13} className="animate-spin" /> : <Eye size={13} />}
+                            Xem
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm sd-file-btn"
+                            onClick={() => handleAccessFile(ans.value, 'download', ans.id)}
+                            disabled={loadingFileId === ans.id}
+                          >
+                            <Download size={13} />
+                            Tải về
+                          </button>
+                        </div>
+                      </div>
+
                     ) : (
                       <span className={`sd-answer-value ${!ans.value ? 'sd-no-value' : ''}`}>
                         {ans.value || 'Không có giá trị'}

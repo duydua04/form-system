@@ -24,4 +24,8 @@ export const submissionService = {
   getSubmissionDetail: async (submissionId) => {
     return await apiCall(`/api/admin/submissions/${submissionId}`);
   },
+
+  getPresignedUrl: async (path) => {
+    return await apiCall(`/api/files/presigned-url?path=${encodeURIComponent(path)}`);
+  }
 };

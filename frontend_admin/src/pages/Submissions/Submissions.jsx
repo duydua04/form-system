@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FileText, Calendar, Clock, ChevronRight,
   ArrowLeft, AlertCircle, Type, Hash,
   CheckSquare, List, ToggleLeft, Mail,
-  AlignLeft, Palette, HelpCircle,
+  AlignLeft, Palette, HelpCircle, Paperclip, Eye, Download, Loader2
 } from 'lucide-react';
 import { useSubmissions } from '../../hooks/useSubmissions';
+import { submissionService } from '../../services/submission.service';
 import './Submissions.css';
 
 /* ─── Helpers ─── */
@@ -41,6 +42,7 @@ const FIELD_META = {
   checkbox:  { icon: CheckSquare, color: '#14b8a6', bg: '#ccfbf1', label: 'Nhiều lựa chọn' },
   radio:     { icon: ToggleLeft,  color: '#f97316', bg: '#ffedd5', label: 'Lựa chọn' },
   color:     { icon: Palette,     color: '#ec4899', bg: '#fce7f3', label: 'Màu sắc' },
+  file:      { icon: Paperclip,   color: '#16a34a', bg: '#dcfce3', label: 'Tệp đính kèm' }, // Bổ sung loại File
 };
 
 const getFieldMeta = (type) => FIELD_META[type] || { icon: HelpCircle, color: '#6b7280', bg: '#f3f4f6', label: type };
@@ -61,114 +63,156 @@ const getPageNumbers = (page, totalPages) => {
 };
 
 /* ─── Detail View ─── */
-const DetailView = ({ submission, loading, error, onBack }) => (
-  <div className="detail-view">
-    {/* Back button */}
-    <button className="back-btn" onClick={onBack}>
-      <ArrowLeft size={16} />
-      Quay lại lịch sử nộp
-    </button>
+const DetailView = ({ submission, loading, error, onBack }) => {
+  const [loadingFileId, setLoadingFileId] = useState(null);
 
-    {loading && (
-      <div className="detail-loading">
-        <div className="submissions-spinner" />
-        Đang tải chi tiết...
-      </div>
-    )}
+  const handleAccessFile = async (filePath, action, fieldId) => {
+    try {
+      setLoadingFileId(fieldId);
+      const res = await submissionService.getPresignedUrl(filePath);
+      const fileUrl = res.data.url;
 
-    {error && !loading && (
-      <div className="submissions-error-banner">
-        <AlertCircle size={14} /> {error}
-      </div>
-    )}
+      if (action === 'view') {
+        window.open(fileUrl, '_blank');
+      } else if (action === 'download') {
+        const a = document.createElement('a');
+        a.href = fileUrl;
+        const fileName = filePath.split('/').pop() || 'downloaded_file.pdf';
+        a.download = fileName;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    } catch (err) {
+      alert("Không thể truy cập file lúc này. File có thể đã bị xóa hoặc hết hạn bảo mật.");
+    } finally {
+      setLoadingFileId(null);
+    }
+  };
 
-    {!loading && !error && submission && (
-      <>
-        {/* Hero card */}
-        <div className="detail-hero">
-          <div className="hero-icon-wrap">
-            <FileText size={22} color="#fff" />
-          </div>
-          <div className="hero-text">
-            <div className="hero-title">{submission.form_title}</div>
-            <div className="hero-meta">
-              <span className="hero-meta-item">
-                <Calendar size={13} />
-                {formatDate(submission.submitted_at)}
-              </span>
-              <span className="hero-meta-dot" />
-              <span className="hero-meta-item">
-                <Clock size={13} />
-                {formatTime(submission.submitted_at)}
-              </span>
+  return (
+    <div className="detail-view">
+      <button className="back-btn" onClick={onBack}>
+        <ArrowLeft size={16} />
+        Quay lại lịch sử nộp
+      </button>
+
+      {loading && (
+        <div className="detail-loading">
+          <div className="submissions-spinner" />
+          Đang tải chi tiết...
+        </div>
+      )}
+
+      {error && !loading && (
+        <div className="submissions-error-banner">
+          <AlertCircle size={14} /> {error}
+        </div>
+      )}
+
+      {!loading && !error && submission && (
+        <>
+          <div className="detail-hero">
+            <div className="hero-icon-wrap">
+              <FileText size={22} color="#fff" />
+            </div>
+            <div className="hero-text">
+              <div className="hero-title">{submission.form_title}</div>
+              <div className="hero-meta">
+                <span className="hero-meta-item">
+                  <Calendar size={13} />
+                  {formatDate(submission.submitted_at)}
+                </span>
+                <span className="hero-meta-dot" />
+                <span className="hero-meta-item">
+                  <Clock size={13} />
+                  {formatTime(submission.submitted_at)}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Submitter info strip */}
-        <div className="submitter-strip">
-          <span className="submitter-name">{submission.username}</span>
-          <span className="submitter-sep">·</span>
-          <span className="submitter-email">{submission.email}</span>
-        </div>
-
-        {/* Answers */}
-        <div className="answers-card">
-          <div className="answers-card-header">
-            <span className="answers-card-title">Câu trả lời</span>
-            <span className="answers-field-badge">{submission.answers?.length || 0} trường</span>
+          <div className="submitter-strip">
+            <span className="submitter-name">{submission.username}</span>
+            <span className="submitter-sep">·</span>
+            <span className="submitter-email">{submission.email}</span>
           </div>
 
-          {submission.answers?.length === 0 && (
-            <div className="answers-empty">Bài nộp không có câu trả lời nào.</div>
-          )}
+          <div className="answers-card">
+            <div className="answers-card-header">
+              <span className="answers-card-title">Câu trả lời</span>
+              <span className="answers-field-badge">{submission.answers?.length || 0} trường</span>
+            </div>
 
-          <div className="answers-list">
-            {submission.answers?.map((ans, idx) => {
-              const meta = getFieldMeta(ans.field_type);
-              const Icon = meta.icon;
-              const isLast = idx === (submission.answers.length - 1);
+            {submission.answers?.length === 0 && (
+              <div className="answers-empty">Bài nộp không có câu trả lời nào.</div>
+            )}
 
-              return (
-                <div key={ans.id} className={`answer-row ${isLast ? 'last' : ''}`}>
-                  {/* Left: icon + labels */}
-                  <div className="answer-row-left">
-                    <div
-                      className="answer-field-icon"
-                      style={{ background: meta.bg, color: meta.color }}
-                    >
-                      <Icon size={14} />
+            <div className="answers-list">
+              {submission.answers?.map((ans, idx) => {
+                const meta = getFieldMeta(ans.field_type);
+                const Icon = meta.icon;
+                const isLast = idx === (submission.answers.length - 1);
+
+                return (
+                  <div key={ans.id} className={`answer-row ${isLast ? 'last' : ''}`}>
+                    {/* Left: icon + labels */}
+                    <div className="answer-row-left">
+                      <div className="answer-field-icon" style={{ background: meta.bg, color: meta.color }}>
+                        <Icon size={14} />
+                      </div>
+                      <div className="answer-field-info">
+                        <div className="answer-field-label">{ans.field_label}</div>
+                      </div>
                     </div>
-                    <div className="answer-field-info">
-                      <div className="answer-field-label">{ans.field_label}</div>
+
+                    {/* Right: value */}
+                    <div className="answer-row-value">
+                      {ans.field_type === 'color' && ans.value ? (
+                        <span className="color-value">
+                          <span className="color-swatch" style={{ background: ans.value }} />
+                          {ans.value}
+                        </span>
+                      ) : ans.field_type === 'file' && ans.value ? (
+                        /* UI Xử lý File */
+                        <div className="admin-file-value">
+                          <span className="admin-file-name" title={ans.value}>
+                            {ans.value.split('/').pop()}
+                          </span>
+                          <div className="admin-file-actions">
+                            <button
+                              className="admin-file-btn"
+                              onClick={() => handleAccessFile(ans.value, 'view', ans.id)}
+                              disabled={loadingFileId === ans.id}
+                            >
+                              {loadingFileId === ans.id ? <Loader2 size={13} className="animate-spin" /> : <Eye size={13} />} Xem
+                            </button>
+                            <button
+                              className="admin-file-btn"
+                              onClick={() => handleAccessFile(ans.value, 'download', ans.id)}
+                              disabled={loadingFileId === ans.id}
+                            >
+                              <Download size={13} /> Tải về
+                            </button>
+                          </div>
+                        </div>
+                      ) : ans.value !== null && ans.value !== undefined && ans.value !== '' ? (
+                        ans.value
+                      ) : (
+                        <span className="answer-row-empty">—</span>
+                      )}
                     </div>
                   </div>
-
-                  {/* Right: value */}
-                  <div className="answer-row-value">
-                    {ans.field_type === 'color' && ans.value ? (
-                      <span className="color-value">
-                        <span
-                          className="color-swatch"
-                          style={{ background: ans.value }}
-                        />
-                        {ans.value}
-                      </span>
-                    ) : ans.value !== null && ans.value !== undefined && ans.value !== '' ? (
-                      ans.value
-                    ) : (
-                      <span className="answer-row-empty">—</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </>
-    )}
-  </div>
-);
+        </>
+      )}
+    </div>
+  );
+};
 
 /* ─── List View ─── */
 const ListView = ({ submissions, loading, error, pagination, onRowClick, onPageChange }) => (

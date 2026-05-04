@@ -303,3 +303,55 @@
 .sd-error-icon {
   color: var(--danger);
 }
+
+/* ───────────────────────────────────────────
+   Bổ sung: File Upload Value Styles
+─────────────────────────────────────────── */
+
+.sd-file-value {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.sd-file-name {
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: monospace;
+  background: #f8fafc;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.sd-file-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.sd-file-btn {
+  padding: 0 10px;
+  height: 28px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-color: #cbd5e1;
+  color: var(--text-primary);
+  background: #fff;
+}
+
+.sd-file-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.sd-file-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
