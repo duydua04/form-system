@@ -16,9 +16,3 @@ class AuthRepository:
 
     async def get_account_by_id(self, model: Type[T], account_id: int) -> Optional[T]:
         return await self.db.get(model, account_id)
-
-    async def create_account(self, account: T) -> T:
-        self.db.add(account)
-        await self.db.commit()
-        await self.db.refresh(account)
-        return account

@@ -36,36 +36,6 @@ class AuthService:
             )
         return account
 
-    async def register_user(self, payload: RegisterRequest) -> User:
-        if await self.auth_repo.get_account_by_email(User, payload.email):
-            raise AppException(
-                status_code=status.HTTP_409_CONFLICT,
-                error_code="EMAIL_ALREADY_EXISTS",
-                message="A user with this email address is already registered."
-            )
-
-        new_user = User(
-            username=payload.username,
-            email=payload.email,
-            password_hash=get_password_hash(payload.password)
-        )
-        return await self.auth_repo.create_account(new_user)
-
-    async def register_admin(self, payload: RegisterRequest) -> Admin:
-        if await self.auth_repo.get_account_by_email(Admin, payload.email):
-            raise AppException(
-                status_code=status.HTTP_409_CONFLICT,
-                error_code="EMAIL_ALREADY_EXISTS",
-                message="An admin with this email address is already registered."
-            )
-
-        new_admin = Admin(
-            username=payload.username,
-            email=payload.email,
-            password_hash=get_password_hash(payload.password)
-        )
-        return await self.auth_repo.create_account(new_admin)
-
     async def authenticate_user(self, payload: LoginRequest) -> User:
         return await self._authenticate_account(User, payload)
 

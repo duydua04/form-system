@@ -30,14 +30,6 @@ class AuthController:
             max_age=7 * 24 * 60 * 60
         )
 
-    async def register_user(self, payload: RegisterRequest) -> AuthSuccessResponse:
-        user = await self.auth_service.register_user(payload)
-        return AuthSuccessResponse(message="User registered successfully.", account=user)
-
-    async def register_admin(self, payload: RegisterRequest) -> AuthSuccessResponse:
-        admin = await self.auth_service.register_admin(payload)
-        return AuthSuccessResponse(message="Admin registered successfully.", account=admin)
-
     async def login_user(self, payload: LoginRequest, response: Response) -> AuthSuccessResponse:
         user = await self.auth_service.authenticate_user(payload)
         self._set_auth_cookies(response, user.id, "user")

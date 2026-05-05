@@ -12,19 +12,6 @@ auth_router = APIRouter(
     tags=["Authentication"]
 )
 
-@auth_router.post("/register", response_model=AuthSuccessResponse, status_code=status.HTTP_201_CREATED)
-async def register(
-    payload: RegisterRequest,
-    controller: AuthController = Depends(get_auth_controller)
-):
-    return await controller.register_user(payload)
-
-@auth_router.post("/admin/register", response_model=AuthSuccessResponse, status_code=status.HTTP_201_CREATED)
-async def register_admin(
-    payload: RegisterRequest,
-    controller: AuthController = Depends(get_auth_controller)
-):
-    return await controller.register_admin(payload)
 
 @auth_router.post("/login", response_model=AuthSuccessResponse, status_code=status.HTTP_200_OK)
 async def login_user(
