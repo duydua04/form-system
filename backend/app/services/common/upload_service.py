@@ -1,6 +1,7 @@
 from fastapi import status
 from ...utils.storage.minio_utils import minio_handler
 from ...utils.error_helper.exceptions import AppException
+from ...schemas.common.error_schema import ErrorDetailItem
 
 class UploadService:
     def upload_pdf(self, file_name: str, file_data: bytes, content_type: str) -> dict:
@@ -19,7 +20,7 @@ class UploadService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 error_code="STORAGE_UPLOAD_ERROR",
                 message="Không thể lưu trữ file lúc này. Vui lòng thử lại sau.",
-                details=[{"issue": str(e)}]
+                details=[ErrorDetailItem(field="file", issue=str(e))]
             )
 
 def get_upload_service() -> UploadService:

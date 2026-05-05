@@ -1,11 +1,12 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class MinioSettings(BaseSettings):
-    ENDPOINT: str = "localhost:9000"
-    ACCESS_KEY: str = "admin_form"
-    SECRET_KEY: str = "SecurePassword123!"
-    SECURE: bool = False
-    BUCKET_NAME: str = "form-submissions"
+    ENDPOINT: str
+    PUBLIC_ENDPOINT: str
+    ACCESS_KEY: str
+    SECRET_KEY: str
+    SECURE: bool
+    BUCKET_NAME: str
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -1,0 +1,72 @@
+services:
+  # --- CÁC SERVICE BẠN ĐÃ CÓ ---
+  db:
+    image: postgres:15
+    container_name: form_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - form_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+
+  minio:
+    image: minio/minio
+    container_name: form_minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./local-minio-data:/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: form_backend
+    restart: always
+    env_file:
+      - backend/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+      - minio
+
+  frontend_admin:
+    build:
+      context: ./frontend_admin
+    container_name: form_frontend_admin
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend_admin:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+  frontend_user:
+    build:
+      context: ./frontend_user
+    container_name: form_frontend_user
+    ports:
+      - "5174:5174"
+    volumes:
+      - ./frontend_user:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+volumes:
+  form_data:
+  minio_data:

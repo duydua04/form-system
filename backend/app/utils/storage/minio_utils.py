@@ -8,12 +8,23 @@ from ...configs.minio_config import minio_settings
 
 class MinioHandler:
     def __init__(self):
+        # 1. CLIENT NỘI BỘ
         self.client = Minio(
-            minio_settings.ENDPOINT,
+            minio_settings.ENDPOINT,  # Thường là "minio:9000"
             access_key=minio_settings.ACCESS_KEY,
             secret_key=minio_settings.SECRET_KEY,
             secure=minio_settings.SECURE
         )
+
+        # 2. CLIENT ẢO (EXTERNAL)
+        self.external_client = Minio(
+            minio_settings.PUBLIC_ENDPOINT,  # Lấy từ .env, phải là "localhost:9005"
+            access_key=minio_settings.ACCESS_KEY,
+            secret_key=minio_settings.SECRET_KEY,
+            secure=minio_settings.SECURE,
+            region="us-east-1"  # BẮT BUỘC có để Client không tự động check kết nối mạng
+        )
+
         self.bucket_name = minio_settings.BUCKET_NAME
         self._ensure_bucket_exists()
 
@@ -26,18 +37,20 @@ class MinioHandler:
         except S3Error as e:
             print(f"Lỗi khởi tạo bucket MinIO: {e}")
 
-    def upload_file(self, file_name: str, file_data: bytes, content_type: str = "application/pdf") -> str:
-        """
-        Upload file lên MinIO. Trả về đường dẫn.
-        """
+    def upload_file(
+            self,
+            file_name: str, file_data: bytes,
+            content_type: str = "application/pdf"
+    ) -> str:
+        """Upload file lên MinIO bằng Client Nội bộ. Trả về đường dẫn."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         unique_id = uuid.uuid4().hex[:8]
         month_folder = datetime.now().strftime("%Y/%m")
 
-        # Cấu trúc: uploads/2026/05/20260504_153000_a1b2c3d4.pdf
         object_name = f"uploads/{month_folder}/{timestamp}_{unique_id}.pdf"
 
         try:
+            # Dùng internal client để upload
             self.client.put_object(
                 bucket_name=self.bucket_name,
                 object_name=object_name,
@@ -51,18 +64,20 @@ class MinioHandler:
 
     def get_presigned_url(self, file_path: str, expires_in_hours: int = 1) -> str:
         """
-        Tạo URL tạm thời để xem/tải file trực tiếp từ MinIO.
-        file_path có dạng: form-submissions/uploads/...
+        Tạo URL tạm thời bằng EXTERNAL CLIENT để Frontend có thể mở được file.
         """
         try:
-            # Tách bucket_name và object_name từ đường dẫn thô
-            parts = file_path.split("/", 1)
+            # Cắt bỏ '/' ở đầu nếu bị thừa
+            clean_path = file_path.lstrip('/')
+            parts = clean_path.split("/", 1)
+
             if len(parts) != 2:
                 raise ValueError("Đường dẫn file không hợp lệ")
 
             bucket_name, object_name = parts
 
-            url = self.client.presigned_get_object(
+            # SỬ DỤNG EXTERNAL CLIENT TẠI ĐÂY
+            url = self.external_client.presigned_get_object(
                 bucket_name=bucket_name,
                 object_name=object_name,
                 expires=timedelta(hours=expires_in_hours)
@@ -70,5 +85,6 @@ class MinioHandler:
             return url
         except Exception as e:
             raise Exception(f"Lỗi khi tạo link truy cập: {e}")
+
 
 minio_handler = MinioHandler()

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, Depends, status, Query
 from ...controllers.common.upload_controller import UploadController, get_upload_controller
+from ...schemas.common.error_schema import ErrorDetailItem
 from ...utils.error_helper.exceptions import AppException
 from ...utils.storage.minio_utils import minio_handler
 
@@ -65,5 +66,5 @@ async def get_file_access_url(path: str = Query(..., description="Đường dẫ
             status_code=status.HTTP_400_BAD_REQUEST,
             error_code="PRESIGNED_URL_ERROR",
             message="Không thể tạo link truy cập file lúc này.",
-            details=[{"issue": str(e)}]
+            details=[ErrorDetailItem(field="file", issue=str(e))]
         )
