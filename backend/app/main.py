@@ -14,6 +14,7 @@ from .routes.common.upload_route import upload_router
 from .routes.admin.admin_form_route import admin_form_router
 from .routes.admin.admin_field_route import field_router
 from .routes.admin.admin_submission_route import admin_submission_router
+from .routes.admin.user_management_route import user_management_router
 
 #IMPORT USER ROUTER
 from .routes.user.user_submission_route import user_form_router
@@ -39,6 +40,7 @@ app.include_router(upload_router)
 app.include_router(admin_form_router)
 app.include_router(field_router)
 app.include_router(admin_submission_router)
+app.include_router(user_management_router)
 
 #CALL USER API
 app.include_router(user_form_router)

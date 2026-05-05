@@ -64,7 +64,6 @@ class AdminSubmissionService:
             "form_id": submission.form_id,
             "form_title": submission.form.title if submission.form else "Biểu mẫu đã xoá",
             "user_id": submission.user_id,
-            "username": submission.user.username if submission.user else "Unknown",
             "email": submission.user.email if submission.user else "Unknown",
             "submitted_at": submission.submitted_at,
             "answers": answers,
@@ -81,7 +80,6 @@ class AdminSubmissionService:
                 "form_id": sub.form_id,
                 "form_title": sub.form.title if sub.form else "Biểu mẫu đã xoá",
                 "user_id": sub.user_id,
-                "username": sub.user.username if sub.user else "Unknown",
                 "email": sub.user.email if sub.user else "Unknown",
                 "submitted_at": sub.submitted_at,
             })
