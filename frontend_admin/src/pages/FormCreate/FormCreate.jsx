@@ -428,7 +428,7 @@ const FormCreate = () => {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                           <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '15px' }}>{field.label}</span>
-                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>(Thứ tự: {field.display_order})</span>
+
                           {field.is_required && <span style={{ color: 'var(--danger)', fontSize: '12px', fontWeight: 600, marginLeft: '4px' }}>* Bắt buộc</span>}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -475,7 +475,7 @@ const FormCreate = () => {
 
             <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="form-group">
-                <label>Tên trường (Label) <span className="required-star">*</span></label>
+                <label>Tên trường <span className="required-star">*</span></label>
                 <input
                   type="text"
                   name="label"
@@ -487,7 +487,7 @@ const FormCreate = () => {
 
               <div className="form-grid" style={{ padding: 0, gap: '16px' }}>
                 <div className="form-group">
-                  <label>Loại dữ liệu (Type)</label>
+                  <label>Loại dữ liệu</label>
                   <select
                     name="field_type"
                     value={fieldData.field_type}
@@ -579,7 +579,7 @@ const FormCreate = () => {
                   style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--primary-color)' }}
                 />
                 <label htmlFor="is_required_chk" style={{ cursor: 'pointer', userSelect: 'none' }}>
-                  Bắt buộc người dùng phải điền (Required)
+                  Bắt buộc người dùng phải điền
                 </label>
               </div>
             </div>
