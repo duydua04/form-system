@@ -20,13 +20,13 @@ const FieldTypeIcons = {
 };
 
 const FieldTypeLabels = {
-  text: 'Văn bản (Text)',
-  number: 'Số (Number)',
-  date: 'Ngày tháng (Date)',
-  color: 'Màu sắc (Color)',
-  select: 'Chọn 1 (Select)',
-  multi_select: 'Chọn nhiều (Multi Select)',
-  file: 'Tải tệp lên (File)'
+  text: 'Văn bản',
+  number: 'Số',
+  date: 'Ngày tháng',
+  color: 'Màu sắc',
+  select: 'Chọn 1',
+  multi_select: 'Chọn nhiều',
+  file: 'Tải tệp lên'
 };
 
 const FormCreate = () => {

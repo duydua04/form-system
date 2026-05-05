@@ -5,6 +5,7 @@ import Login from './pages/Login/Login';
 import FormsList from './pages/FormsList/FormsList';
 import FormCreate from './pages/FormCreate/FormCreate';
 import Submissions from './pages/Submissions/Submissions';
+import AccountsList from './pages/Accounts/AccountsList';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="forms/create" element={<FormCreate />} />
           <Route path="forms/:id/edit" element={<FormCreate />} />
           <Route path="submissions" element={<Submissions />} />
+          <Route path="accounts" element={<AccountsList />} />
         </Route>
       </Routes>
     </BrowserRouter>

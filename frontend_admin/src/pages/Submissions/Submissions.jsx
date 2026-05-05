@@ -253,7 +253,6 @@ const ListView = ({ submissions, loading, error, pagination, onRowClick, onPageC
               <thead>
                 <tr>
                   <th>Biểu mẫu</th>
-                  <th>Người nộp</th>
                   <th>Email</th>
                   <th style={{ width: '160px' }}>Thời gian nộp</th>
                   <th style={{ width: '40px' }}></th>
@@ -262,7 +261,7 @@ const ListView = ({ submissions, loading, error, pagination, onRowClick, onPageC
               <tbody>
                 {submissions.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="table-empty">
+                    <td colSpan="4" className="table-empty">
                       Chưa có bài nộp nào trong hệ thống
                     </td>
                   </tr>
@@ -275,7 +274,7 @@ const ListView = ({ submissions, loading, error, pagination, onRowClick, onPageC
                           {sub.form_title}
                         </div>
                       </td>
-                      <td style={{ fontWeight: 500 }}>{sub.username}</td>
+
                       <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{sub.email}</td>
                       <td className="datetime-cell">
                         <Calendar size={12} className="datetime-icon" />

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutList, FileDown, LogOut } from 'lucide-react';
+import { LayoutList, FileDown, LogOut, Users } from 'lucide-react';
 
 const AdminLayout = () => {
   const navigate = useNavigate();
@@ -36,6 +36,14 @@ const AdminLayout = () => {
             <FileDown className="nav-icon" />
             Dữ liệu nộp
           </NavLink>
+          <NavLink
+            to="/accounts"
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          >
+            <Users className="nav-icon" />
+            Quản lý Nhân viên
+          </NavLink>
+
         </div>
       </div>
 
