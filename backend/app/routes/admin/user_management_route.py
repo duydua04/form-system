@@ -5,7 +5,7 @@ from ...schemas.common.pagination_schema import PaginatedResponse
 from ...middleware.auth import require_admin
 
 user_management_router = APIRouter(
-    prefix="/admin/accounts",
+    prefix="/api/admin/accounts",
     tags=["Admin - User Management"],
     dependencies=[Depends(require_admin)]
 )
