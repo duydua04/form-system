@@ -5,7 +5,6 @@ from typing import List, Optional
 class SubmissionListItemResponse(BaseModel):
     id: int
     user_id: int
-    username: str
     email: str
     submitted_at: datetime
 
@@ -21,7 +20,6 @@ class SubmissionAdminDetailResponse(BaseModel):
     form_id: int
     form_title: str
     user_id: int
-    username: str
     email: str
     submitted_at: datetime
     answers: List[AdminSubmissionAnswerResponse]
@@ -31,6 +29,5 @@ class SubmissionGlobalItemResponse(BaseModel):
     form_id: int
     form_title: str
     user_id: int
-    username: str
     email: str
     submitted_at: datetime
