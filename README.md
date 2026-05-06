@@ -31,9 +31,8 @@ Có hỗ trợ upload - dowload và lưu trữ file.
 
 ## Video demo
 
-> Cung cấp hình ảnh hoặc đường dẫn video demo dự án tại đây.
 
-[![Demo Video](https://img.youtube.com/vi/<MÃ_VIDEO_YOUTUBE>/0.jpg)](https://www.youtube.com/watch?v=<MÃ_VIDEO_YOUTUBE>)
+[![Demo Video](./images/demo.png)](https://www.youtube.com/watch?v=<MÃ_VIDEO_YOUTUBE)
 
 ---
 
