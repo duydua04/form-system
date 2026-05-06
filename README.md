@@ -32,7 +32,7 @@ Có hỗ trợ upload - dowload và lưu trữ file.
 ## Video demo
 
 
-[![Demo Video](./images/demo.png)](https://www.youtube.com/watch?v=<MÃ_VIDEO_YOUTUBE)
+[![Demo Video](./images/demo.png)](https://drive.google.com/file/d/1R_uwb_AvW7ljrb9n1KXX85nI6x-BwJLO/view?usp=drive_link)
 
 ---
 
